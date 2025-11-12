@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - Day 1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>AI Agent</h1>
+                <p class="subtitle">Your smart assistant powered by OpenAI GPT</p>
+            </div>
+            <div class="header-right">
+                <button class="clear-button" id="clear-button" aria-label="Clear conversation">🗑️ Clear</button>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+            </div>
+        </header>
+
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="welcome-message">
+                    <h2>Welcome! 👋</h2>
+                    <p>I'm an AI agent, ready to answer your questions. Just type your question below!</p>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <form id="chat-form">
+                    <input
+                        type="text"
+                        id="user-input"
+                        placeholder="Type your question..."
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" id="send-button">
+                        <span class="button-text">Send</span>
+                        <span class="loading-spinner" style="display: none;">⏳</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <footer>
+            <p>Day 1 Challenge - AI Agent with HTTP Client</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
