@@ -83,67 +83,6 @@ function updateThemeIcon(theme) {
     themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
-// ===== Temperature Slots Management =====
-const temperatureSlotsContainer = document.getElementById('temperature-slots');
-const addTemperatureButton = document.getElementById('add-temperature');
-
-function getTemperatureSlots() {
-    return Array.from(document.querySelectorAll('.temperature-slot .temp-input'))
-        .map(input => parseFloat(input.value))
-        .filter(val => !isNaN(val));
-}
-
-function updateRemoveButtons() {
-    const slots = document.querySelectorAll('.temperature-slot');
-    slots.forEach((slot, index) => {
-        const removeBtn = slot.querySelector('.remove-temp');
-        // Show remove button only if there's more than 1 slot
-        if (slots.length > 1) {
-            removeBtn.style.display = 'inline-block';
-        } else {
-            removeBtn.style.display = 'none';
-        }
-    });
-}
-
-function createTemperatureSlot(temperature = 0.7) {
-    const slot = document.createElement('div');
-    slot.className = 'temperature-slot';
-    slot.innerHTML = `
-        <label>🌡️ Temperature:</label>
-        <input type="number" class="temp-input" min="0" max="2" step="0.1" value="${temperature}" required>
-        <button type="button" class="remove-temp">✕</button>
-    `;
-
-    // Add remove functionality
-    const removeBtn = slot.querySelector('.remove-temp');
-    removeBtn.addEventListener('click', () => {
-        if (document.querySelectorAll('.temperature-slot').length > 1) {
-            slot.remove();
-            updateRemoveButtons();
-        }
-    });
-
-    return slot;
-}
-
-// Add temperature button handler
-addTemperatureButton.addEventListener('click', () => {
-    const currentSlots = document.querySelectorAll('.temperature-slot').length;
-    if (currentSlots < 5) { // Limit to 5 temperature slots
-        const lastTemp = parseFloat(document.querySelector('.temperature-slot:last-child .temp-input').value);
-        const newTemp = Math.min(2, lastTemp + 0.3); // Suggest next temperature
-        const newSlot = createTemperatureSlot(newTemp.toFixed(1));
-        temperatureSlotsContainer.appendChild(newSlot);
-        updateRemoveButtons();
-    } else {
-        alert('Maximum 5 temperature comparisons allowed');
-    }
-});
-
-// Initialize remove buttons state
-updateRemoveButtons();
-
 // Handle Enter key - Shift+Enter for new line, Enter to submit
 userInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -160,12 +99,6 @@ chatForm.addEventListener('submit', async (e) => {
     const message = userInput.value.trim();
     if (!message) return;
 
-    const temperatures = getTemperatureSlots();
-    if (temperatures.length === 0) {
-        alert('Please add at least one temperature value');
-        return;
-    }
-
     // Remove welcome message on first message
     if (isFirstMessage) {
         const welcomeMessage = chatMessages.querySelector('.welcome-message');
@@ -181,7 +114,7 @@ chatForm.addEventListener('submit', async (e) => {
     // Clear input field
     userInput.value = '';
 
-    // Disable form while processing
+    // Disable send button
     setButtonLoading(true);
 
     // Show typing indicator
@@ -190,34 +123,36 @@ chatForm.addEventListener('submit', async (e) => {
     try {
         // Get selected format from dropdown
         const selectedFormat = responseFormat.value;
+
+        // Send HTTP request to API
+        // Get enabled fields for structured formats
         const enabledFields = selectedFormat !== 'plain' ? getEnabledFields() : null;
 
-        // Send requests for each temperature in parallel
-        const requests = temperatures.map(temp =>
-            fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    message: message,
-                    format: selectedFormat,
-                    fields: enabledFields,
-                    temperature: temp
-                })
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                message: message,
+                format: selectedFormat,
+                fields: enabledFields
             })
-        );
+        });
 
-        const responses = await Promise.all(requests);
-        const results = await Promise.all(responses.map(r => r.json()));
+        const data = await response.json();
 
         // Remove typing indicator
         hideTypingIndicator(typingIndicator);
 
-        // Display comparison results
-        displayTemperatureComparison(temperatures, results, selectedFormat);
-
+        if (response.ok && data.success) {
+            // Add AI response with format information
+            addMessage(data.response, 'ai', data.format, data.parsed);
+        } else {
+            // Handle error
+            showError(data.error || 'An error occurred while processing your request');
+        }
     } catch (error) {
         console.error('Error:', error);
         hideTypingIndicator(typingIndicator);
@@ -473,51 +408,6 @@ function escapeHtml(text) {
 }
 
 /**
- * Display temperature comparison results
- * @param {Array} temperatures - Array of temperature values
- * @param {Array} results - Array of API response results
- * @param {string} format - Response format
- */
-function displayTemperatureComparison(temperatures, results, format) {
-    const comparisonContainer = document.createElement('div');
-    comparisonContainer.className = 'message ai-message';
-
-    const comparisonGrid = document.createElement('div');
-    comparisonGrid.className = 'temperature-comparison';
-
-    results.forEach((result, index) => {
-        const tempResult = document.createElement('div');
-        tempResult.className = 'temp-result';
-
-        const header = document.createElement('div');
-        header.className = 'temp-result-header';
-        header.innerHTML = `
-            <span class="temp-label">Temperature</span>
-            <span class="temp-value">${temperatures[index]}</span>
-        `;
-
-        const content = document.createElement('div');
-        content.className = 'temp-result-content';
-
-        if (result.error) {
-            content.innerHTML = `<div class="parse-error">Error: ${escapeHtml(result.error)}</div>`;
-        } else if (result.success) {
-            content.innerHTML = renderResponse(result.response, format, result.parsed);
-        } else {
-            content.innerHTML = '<div class="parse-error">Unknown error occurred</div>';
-        }
-
-        tempResult.appendChild(header);
-        tempResult.appendChild(content);
-        comparisonGrid.appendChild(tempResult);
-    });
-
-    comparisonContainer.appendChild(comparisonGrid);
-    chatMessages.appendChild(comparisonContainer);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-/**
  * Copy text to clipboard
  * @param {string} text - Text to copy
  * @param {HTMLElement} button - Copy button element
@@ -609,17 +499,6 @@ function showError(errorText) {
 function setButtonLoading(isLoading) {
     sendButton.disabled = isLoading;
     userInput.disabled = isLoading;
-    addTemperatureButton.disabled = isLoading;
-    responseFormat.disabled = isLoading;
-    configButton.disabled = isLoading;
-
-    document.querySelectorAll('.temp-input').forEach(input => {
-        input.disabled = isLoading;
-    });
-
-    document.querySelectorAll('.remove-temp').forEach(btn => {
-        btn.disabled = isLoading;
-    });
 
     if (isLoading) {
         buttonText.style.display = 'none';

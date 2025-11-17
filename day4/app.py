@@ -67,7 +67,7 @@ MAX_CUSTOM_FIELDS = 10
 MAX_TOTAL_FIELDS = 15
 MAX_FIELD_NAME_LENGTH = 50
 
-# Response format prompts - Simple for Day 4 temperature comparison
+# Response format prompts - includes all formats from previous days
 RESPONSE_PROMPTS = {
     "plain": """You are a helpful AI assistant. Provide clear, concise, and accurate responses to user questions.""",
 
@@ -432,6 +432,8 @@ def chat():
 
         user_message = data['message'].strip()
         temperature = data.get('temperature', OPENAI_TEMPERATURE)  # Get temperature from request
+        response_format = data.get('format', 'plain').lower()
+        fields = data.get('fields', None)  # Optional fields configuration
 
         # Validate temperature
         try:
@@ -447,7 +449,19 @@ def chat():
                 'success': False
             }), 400
 
-        response_format = 'plain'  # Day 4 only uses plain format
+        # Validate fields
+        if fields and not validate_fields(fields):
+            return jsonify({
+                'error': 'Invalid fields configuration. Use alphanumeric names starting with a letter.',
+                'success': False
+            }), 400
+
+        # Validate format
+        if response_format not in RESPONSE_PROMPTS:
+            return jsonify({
+                'error': f'Invalid format. Must be one of: {", ".join(RESPONSE_PROMPTS.keys())}',
+                'success': False
+            }), 400
 
         # Validate message
         if not user_message:
@@ -462,8 +476,8 @@ def chat():
                 'success': False
             }), 400
 
-        # Get AI response with specified temperature
-        ai_response = get_ai_response(user_message, response_format, None, temperature)
+        # Get AI response with specified temperature, format, and fields
+        ai_response = get_ai_response(user_message, response_format, fields, temperature)
 
         # Validate JSON/XML responses can be parsed
         parsed_data = None

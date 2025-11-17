@@ -50,6 +50,15 @@
                     <button type="button" id="add-temperature" class="add-temp-button">+ Add Temperature</button>
 
                     <div class="input-row">
+                        <select id="response-format" class="format-select">
+                            <option value="plain">💬 Plain</option>
+                            <option value="json">{ } JSON</option>
+                            <option value="markdown">📝 Markdown</option>
+                            <option value="xml">&lt;/&gt; XML</option>
+                        </select>
+                        <button type="button" id="config-button" class="config-button" title="Configure response structure">
+                            ⚙️
+                        </button>
                         <textarea
                             id="user-input"
                             placeholder="Type your prompt... (e.g., 'Explain what Python is in 2 sentences')"
@@ -69,6 +78,67 @@
         <footer>
             <p>Day 4 Challenge - Temperature Comparison for AI Responses</p>
         </footer>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Configure Response Structure</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Select which fields to include in structured responses (JSON/XML/Markdown):</p>
+
+                <div class="config-section">
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="answer" checked disabled>
+                        <span class="config-label">💬 Answer <span class="required">(required)</span></span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="category" id="field-category" checked>
+                        <span class="config-label">🏷️ Category</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="key_points" id="field-key-points" checked>
+                        <span class="config-label">✨ Key Points</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="confidence" id="field-confidence">
+                        <span class="config-label">📊 Confidence Level</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="sources" id="field-sources">
+                        <span class="config-label">📚 Sources</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="related_topics" id="field-related">
+                        <span class="config-label">🔗 Related Topics</span>
+                    </label>
+                </div>
+
+                <div class="custom-fields-section">
+                    <h4>✏️ Custom Fields</h4>
+                    <p class="custom-description">Add your own fields (comma-separated). Example: summary, examples, best_practices</p>
+                    <input
+                        type="text"
+                        id="custom-fields-input"
+                        class="custom-fields-input"
+                        placeholder="e.g., summary, examples, tips"
+                    >
+                    <div id="custom-fields-preview" class="custom-fields-preview"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="reset-config">Reset to Default</button>
+                <button class="btn-primary" id="save-config">Save Configuration</button>
+            </div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
