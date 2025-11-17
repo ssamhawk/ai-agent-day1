@@ -83,6 +83,15 @@ function updateThemeIcon(theme) {
     themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
+// Handle Enter key - Shift+Enter for new line, Enter to submit
+userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatForm.dispatchEvent(new Event('submit'));
+    }
+    // Shift+Enter will create a new line naturally
+});
+
 // Handle form submission
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
