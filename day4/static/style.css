@@ -1075,29 +1075,25 @@ footer {
 .temperature-slots-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 12px;
-    padding: 16px;
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
+    gap: 10px;
+    margin-bottom: 16px;
 }
 
 .temperature-slot {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     background: var(--bg-message);
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-subtle);
     transition: all 0.2s ease;
 }
 
 .temperature-slot:hover {
     box-shadow: var(--shadow);
-    border-color: var(--primary-color);
+    border-color: var(--border-color);
 }
 
 .temperature-slot label {
@@ -1143,38 +1139,48 @@ footer {
 }
 
 .add-temp-button {
-    width: 100%;
-    padding: 10px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: var(--bg-message);
+    color: var(--primary-color);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
-.add-temp-button:hover {
+.add-temp-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-color: transparent;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.add-temp-button:active {
+.add-temp-button:active:not(:disabled) {
     transform: translateY(0);
 }
 
+.add-temp-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Update input-row for textarea */
-.input-row textarea {
+.input-row #user-input {
     flex: 1;
-    padding: 12px 16px;
+    padding: 16px 20px;
     font-size: 15px;
     font-family: inherit;
     color: var(--text-primary);
     background: var(--bg-message);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
     outline: none;
     resize: vertical;
     min-height: 50px;
@@ -1182,9 +1188,14 @@ footer {
     transition: all 0.2s ease;
 }
 
-.input-row textarea:focus {
+.input-row #user-input:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-row #user-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Temperature comparison results */
