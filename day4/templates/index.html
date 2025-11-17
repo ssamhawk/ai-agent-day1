@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - Day 4: Temperature</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>🤖 AI Agent <span class="version-badge">Day 4</span></h1>
+                <p class="subtitle">🌡️ Compare AI responses at different temperatures</p>
+            </div>
+            <div class="header-right">
+                <button class="clear-button" id="clear-button" aria-label="Clear conversation">🗑️ Clear</button>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+            </div>
+        </header>
+
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="welcome-message">
+                    <h2>Welcome! 👋</h2>
+                    <p>Compare how AI responds with different temperature settings. Add multiple temperatures to see side-by-side comparisons!</p>
+                    <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">
+                        <strong>Try these prompts:</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>"Explain what Python is in 2 sentences" (temps: 0, 0.7, 1.2)</li>
+                            <li>"Write a creative product description" (temps: 0.5, 1.0)</li>
+                            <li>"List best practices for code reviews" (temp: 0)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <form id="chat-form">
+                    <div class="temperature-slots-container" id="temperature-slots">
+                        <div class="temperature-slot">
+                            <label>🌡️ Temperature:</label>
+                            <input type="number" class="temp-input" min="0" max="2" step="0.1" value="0.7" required>
+                            <button type="button" class="remove-temp" style="display: none;">✕</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-temperature" class="add-temp-button">+ Add Temperature</button>
+
+                    <div class="input-row">
+                        <textarea
+                            id="user-input"
+                            placeholder="Type your prompt... (e.g., 'Explain what Python is in 2 sentences')"
+                            autocomplete="off"
+                            rows="2"
+                            required
+                        ></textarea>
+                        <button type="submit" id="send-button">
+                            <span class="button-text">Compare</span>
+                            <span class="loading-spinner" style="display: none;">⏳</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer>
+            <p>Day 4 Challenge - Temperature Comparison for AI Responses</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
