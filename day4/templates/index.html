@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - Day 4: Temperature</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>🤖 AI Agent <span class="version-badge">Day 4</span></h1>
+                <p class="subtitle">🌡️ Compare AI responses at different temperatures</p>
+            </div>
+            <div class="header-right">
+                <button class="clear-button" id="clear-button" aria-label="Clear conversation">🗑️ Clear</button>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+            </div>
+        </header>
+
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="welcome-message">
+                    <h2>Welcome! 👋</h2>
+                    <p>Compare how AI responds with different temperature settings. Add multiple temperatures to see side-by-side comparisons!</p>
+                    <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">
+                        <strong>Try these prompts:</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>"Explain what Python is in 2 sentences" (temps: 0, 0.7, 1.2)</li>
+                            <li>"Write a creative product description" (temps: 0.5, 1.0)</li>
+                            <li>"List best practices for code reviews" (temp: 0)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <form id="chat-form">
+                    <div class="settings-bar">
+                        <div class="settings-group">
+                            <label class="settings-label">Temperature:</label>
+                            <div class="temperature-slots-container" id="temperature-slots">
+                                <div class="temperature-slot">
+                                    <input type="number" class="temp-input" min="0" max="2" step="0.1" value="0.7" required>
+                                    <button type="button" class="remove-temp" style="display: none;">✕</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-temperature" class="add-temp-button" title="Add temperature">+</button>
+                        </div>
+
+                        <div class="settings-group">
+                            <label class="settings-label">Format:</label>
+                            <select id="response-format" class="format-select">
+                                <option value="plain">Plain</option>
+                                <option value="json">JSON</option>
+                                <option value="markdown">Markdown</option>
+                                <option value="xml">XML</option>
+                            </select>
+                            <button type="button" id="config-button" class="icon-btn" title="Configure fields">⚙️</button>
+                        </div>
+
+                        <div class="settings-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="intelligent-mode-checkbox">
+                                <span>Intelligent mode</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="input-area">
+                        <textarea
+                            id="user-input"
+                            placeholder="Type your message..."
+                            autocomplete="off"
+                            rows="3"
+                            required
+                        ></textarea>
+                        <button type="submit" id="send-button">
+                            <span class="button-text">Send</span>
+                            <span class="loading-spinner" style="display: none;">⏳</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer>
+            <p>Day 4 Challenge - Temperature Comparison for AI Responses</p>
+        </footer>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Configure Response Structure</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Select which fields to include in structured responses (JSON/XML/Markdown):</p>
+
+                <div class="config-section">
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="answer" checked disabled>
+                        <span class="config-label">💬 Answer <span class="required">(required)</span></span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="category" id="field-category" checked>
+                        <span class="config-label">🏷️ Category</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="key_points" id="field-key-points" checked>
+                        <span class="config-label">✨ Key Points</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="confidence" id="field-confidence">
+                        <span class="config-label">📊 Confidence Level</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="sources" id="field-sources">
+                        <span class="config-label">📚 Sources</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="related_topics" id="field-related">
+                        <span class="config-label">🔗 Related Topics</span>
+                    </label>
+                </div>
+
+                <div class="custom-fields-section">
+                    <h4>✏️ Custom Fields</h4>
+                    <p class="custom-description">Add your own fields (comma-separated). Example: summary, examples, best_practices</p>
+                    <input
+                        type="text"
+                        id="custom-fields-input"
+                        class="custom-fields-input"
+                        placeholder="e.g., summary, examples, tips"
+                    >
+                    <div id="custom-fields-preview" class="custom-fields-preview"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="reset-config">Reset to Default</button>
+                <button class="btn-primary" id="save-config">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
