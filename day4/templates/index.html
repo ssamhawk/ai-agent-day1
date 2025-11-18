@@ -40,34 +40,47 @@
 
             <div class="input-container">
                 <form id="chat-form">
-                    <div class="temperature-slots-container" id="temperature-slots">
-                        <div class="temperature-slot">
-                            <label>🌡️ Temperature:</label>
-                            <input type="number" class="temp-input" min="0" max="2" step="0.1" value="0.7" required>
-                            <button type="button" class="remove-temp" style="display: none;">✕</button>
+                    <div class="settings-bar">
+                        <div class="settings-group">
+                            <label class="settings-label">Temperature:</label>
+                            <div class="temperature-slots-container" id="temperature-slots">
+                                <div class="temperature-slot">
+                                    <input type="number" class="temp-input" min="0" max="2" step="0.1" value="0.7" required>
+                                    <button type="button" class="remove-temp" style="display: none;">✕</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-temperature" class="add-temp-button" title="Add temperature">+</button>
+                        </div>
+
+                        <div class="settings-group">
+                            <label class="settings-label">Format:</label>
+                            <select id="response-format" class="format-select">
+                                <option value="plain">Plain</option>
+                                <option value="json">JSON</option>
+                                <option value="markdown">Markdown</option>
+                                <option value="xml">XML</option>
+                            </select>
+                            <button type="button" id="config-button" class="icon-btn" title="Configure fields">⚙️</button>
+                        </div>
+
+                        <div class="settings-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="intelligent-mode-checkbox">
+                                <span>Intelligent mode</span>
+                            </label>
                         </div>
                     </div>
-                    <button type="button" id="add-temperature" class="add-temp-button">+ Add Temperature</button>
 
-                    <div class="input-row">
-                        <select id="response-format" class="format-select">
-                            <option value="plain">💬 Plain</option>
-                            <option value="json">{ } JSON</option>
-                            <option value="markdown">📝 Markdown</option>
-                            <option value="xml">&lt;/&gt; XML</option>
-                        </select>
-                        <button type="button" id="config-button" class="config-button" title="Configure response structure">
-                            ⚙️
-                        </button>
+                    <div class="input-area">
                         <textarea
                             id="user-input"
-                            placeholder="Type your prompt... (e.g., 'Explain what Python is in 2 sentences')"
+                            placeholder="Type your message..."
                             autocomplete="off"
-                            rows="2"
+                            rows="3"
                             required
                         ></textarea>
                         <button type="submit" id="send-button">
-                            <span class="button-text">Compare</span>
+                            <span class="button-text">Send</span>
                             <span class="loading-spinner" style="display: none;">⏳</span>
                         </button>
                     </div>

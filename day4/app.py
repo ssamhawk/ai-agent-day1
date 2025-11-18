@@ -71,6 +71,79 @@ MAX_FIELD_NAME_LENGTH = 50
 RESPONSE_PROMPTS = {
     "plain": """You are a helpful AI assistant. Provide clear, concise, and accurate responses to user questions.""",
 
+    "plain_intelligent": """You are an intelligent AI assistant with a special ability: you know when you need more information.
+
+CORE PRINCIPLE: Before answering, analyze if you have enough context to give a complete, helpful response.
+
+DECISION LOGIC:
+1. If the question is COMPLETE and you have all necessary information → Provide a comprehensive answer
+2. If the question is VAGUE or MISSING KEY DETAILS → Ask clarifying questions
+
+EXAMPLES:
+
+Example 1 - INCOMPLETE (need to ask):
+User: "How do I deploy my app?"
+You: "I'd be happy to help you deploy your app! To give you the most accurate guidance, I need to know:
+- What type of app is it? (web, mobile, desktop)
+- What framework/technology are you using?
+- Which platform do you want to deploy to?
+
+Please provide these details so I can give you specific deployment instructions."
+
+Example 2 - COMPLETE (can answer):
+User: "How do I deploy a React web app to Vercel?"
+You: "Here's how to deploy a React app to Vercel:
+1. Install Vercel CLI: npm i -g vercel
+2. Run: vercel login
+3. In your project: vercel
+4. Follow the prompts...
+[Complete answer]"
+
+Example 3 - MULTI-TURN (gathering info):
+User: "I need a technical specification"
+You: "I'll help you create a technical specification. Let me gather the necessary information:
+- What type of project is this?
+- What are the main objectives?"
+
+User: "E-commerce website for selling handmade crafts"
+You: "Great! What features do you need? (e.g., product catalog, payment, user accounts)"
+
+User: "Product catalog, shopping cart, payment with Stripe, user reviews"
+You: "Perfect! A few more details:
+- What's your tech stack preference?
+- Timeline and budget?"
+
+User: "React frontend, Node.js backend. 3 months, $15k budget"
+You: "Excellent! I now have all the information needed. Here's your Technical Specification:
+
+# Technical Specification: Handmade Crafts E-commerce Platform
+
+## Project Overview
+Type: E-commerce Web Application
+Purpose: Online marketplace for handmade crafts
+
+## Functional Requirements
+1. Product Catalog System
+2. Shopping Cart
+3. Stripe Payment Integration
+4. User Review System
+
+## Technical Stack
+- Frontend: React
+- Backend: Node.js
+- Payment: Stripe API
+
+## Timeline: 3 months
+## Budget: $15,000
+[... detailed specification continues ...]"
+
+IMPORTANT RULES:
+- Ask questions ONE AT A TIME or in small groups (max 2-3 related questions)
+- When you have SUFFICIENT information, provide the COMPLETE FINAL ANSWER
+- Don't ask for information you already have from context
+- Be conversational and natural
+- When giving final answers, be thorough and well-structured""",
+
     "json": """You are a helpful AI assistant. Always respond in valid JSON format following this exact structure:
 {
   "answer": "main answer here (2-3 sentences)",
@@ -199,17 +272,22 @@ def add_to_conversation(role, content):
     session.modified = True
 
 
-def generate_dynamic_prompt(response_format, fields=None):
+def generate_dynamic_prompt(response_format, fields=None, intelligent_mode=False):
     """
-    Generate a dynamic prompt based on selected fields
+    Generate a dynamic prompt based on selected fields and intelligent mode
 
     Args:
         response_format (str): Desired response format (plain, json, markdown, xml)
         fields (list): List of field names to include in response
+        intelligent_mode (bool): Whether to use intelligent mode (asks clarifying questions)
 
     Returns:
         str: Generated system prompt
     """
+    # Use intelligent prompt for plain format if enabled
+    if response_format == "plain" and intelligent_mode:
+        return RESPONSE_PROMPTS.get("plain_intelligent", RESPONSE_PROMPTS["plain"])
+
     if not fields or response_format == "plain":
         return RESPONSE_PROMPTS.get(response_format, RESPONSE_PROMPTS["plain"])
 
@@ -292,7 +370,7 @@ IMPORTANT: Return ONLY the XML structure, no additional text, no markdown, no ex
     return RESPONSE_PROMPTS.get(response_format, RESPONSE_PROMPTS["plain"])
 
 
-def get_ai_response(user_message, response_format="plain", fields=None, temperature=OPENAI_TEMPERATURE):
+def get_ai_response(user_message, response_format="plain", fields=None, temperature=OPENAI_TEMPERATURE, intelligent_mode=False):
     """
     Get a response from OpenAI API with conversation context
 
@@ -301,13 +379,14 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
         response_format (str): Desired response format (plain, json, markdown, xml)
         fields (list): List of field names to include in structured response
         temperature (float): Temperature for response generation (0-2)
+        intelligent_mode (bool): Whether to use intelligent mode (asks clarifying questions)
 
     Returns:
         str: AI agent's response
     """
     try:
         # Get the appropriate system prompt for the format
-        system_prompt = generate_dynamic_prompt(response_format, fields)
+        system_prompt = generate_dynamic_prompt(response_format, fields, intelligent_mode)
 
         # Build messages WITHOUT conversation history for Day 4 (clean comparison)
         messages = [
@@ -434,6 +513,7 @@ def chat():
         temperature = data.get('temperature', OPENAI_TEMPERATURE)  # Get temperature from request
         response_format = data.get('format', 'plain').lower()
         fields = data.get('fields', None)  # Optional fields configuration
+        intelligent_mode = data.get('intelligent_mode', False)  # Optional intelligent mode
 
         # Validate temperature
         try:
@@ -476,8 +556,8 @@ def chat():
                 'success': False
             }), 400
 
-        # Get AI response with specified temperature, format, and fields
-        ai_response = get_ai_response(user_message, response_format, fields, temperature)
+        # Get AI response with specified temperature, format, fields, and intelligent mode
+        ai_response = get_ai_response(user_message, response_format, fields, temperature, intelligent_mode)
 
         # Validate JSON/XML responses can be parsed
         parsed_data = None

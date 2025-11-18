@@ -13,6 +13,7 @@ const configModal = document.getElementById('config-modal');
 const modalClose = document.getElementById('modal-close');
 const saveConfigButton = document.getElementById('save-config');
 const resetConfigButton = document.getElementById('reset-config');
+const intelligentModeCheckbox = document.getElementById('intelligent-mode-checkbox');
 
 // Remove welcome message on first message
 let isFirstMessage = true;
@@ -109,8 +110,8 @@ function updateRemoveButtons() {
 function createTemperatureSlot(temperature = 0.7) {
     const slot = document.createElement('div');
     slot.className = 'temperature-slot';
+    // No label for additional temperature slots
     slot.innerHTML = `
-        <label>🌡️ Temperature:</label>
         <input type="number" class="temp-input" min="0" max="2" step="0.1" value="${temperature}" required>
         <button type="button" class="remove-temp">✕</button>
     `;
@@ -191,6 +192,7 @@ chatForm.addEventListener('submit', async (e) => {
         // Get selected format from dropdown
         const selectedFormat = responseFormat.value;
         const enabledFields = selectedFormat !== 'plain' ? getEnabledFields() : null;
+        const intelligentMode = intelligentModeCheckbox.checked;
 
         // Send requests for each temperature in parallel
         const requests = temperatures.map(temp =>
@@ -204,7 +206,8 @@ chatForm.addEventListener('submit', async (e) => {
                     message: message,
                     format: selectedFormat,
                     fields: enabledFields,
-                    temperature: temp
+                    temperature: temp,
+                    intelligent_mode: intelligentMode
                 })
             })
         );
