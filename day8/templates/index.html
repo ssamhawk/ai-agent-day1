@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - Day 7: Compression</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>🤖 AI Agent <span class="version-badge">Day 7</span></h1>
+                <p class="subtitle">🗜️ Dialogue compression and token optimization</p>
+            </div>
+            <div class="header-right">
+                <button class="clear-button" id="clear-button" aria-label="Clear conversation">🗑️ Clear</button>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+            </div>
+        </header>
+
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="welcome-message">
+                    <h2>🗜️ Dialogue Compression</h2>
+                    <p>Smart token optimization through automatic conversation compression.</p>
+
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <span class="feature-icon">✨</span>
+                            <div>
+                                <strong>Auto-Compression</strong>
+                                <p>Enabled by default at 10 messages</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🔄</span>
+                            <div>
+                                <strong>Recursive Summaries</strong>
+                                <p>Summaries compress when exceeding 3</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📏</span>
+                            <div>
+                                <strong>Adaptive Size</strong>
+                                <p>100-200 tokens based on content</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📊</span>
+                            <div>
+                                <strong>Token Savings</strong>
+                                <p>Track compression efficiency</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <form id="chat-form">
+                    <div class="settings-bar">
+                        <!-- Response Configuration -->
+                        <div class="settings-section">
+                            <div class="section-label">Response</div>
+                            <div class="settings-group">
+                                <label class="settings-label">Temp:</label>
+                                <div class="temperature-slots-container" id="temperature-slots">
+                                    <div class="temperature-slot">
+                                        <input type="number" class="temp-input" min="0" max="2" step="0.1" placeholder="0.7">
+                                        <button type="button" class="remove-temp" style="display: none;">✕</button>
+                                    </div>
+                                </div>
+                                <button type="button" id="add-temperature" class="add-temp-button" title="Add temperature">+</button>
+                            </div>
+
+                            <div class="settings-group">
+                                <label class="settings-label">Format:</label>
+                                <select id="response-format" class="format-select">
+                                    <option value="plain">Plain</option>
+                                    <option value="json">JSON</option>
+                                    <option value="markdown">MD</option>
+                                    <option value="xml">XML</option>
+                                </select>
+                                <button type="button" id="config-button" class="icon-btn" title="Configure fields">⚙️</button>
+                            </div>
+
+                            <div class="settings-group">
+                                <label class="settings-label">Max tokens:</label>
+                                <input type="number" id="max-tokens-input" class="max-tokens-input" min="1" max="16384" step="1" placeholder="Auto" title="Maximum tokens for response (1-16384, empty=auto)">
+                            </div>
+                        </div>
+
+                        <!-- Modes -->
+                        <div class="settings-section">
+                            <div class="section-label">Modes</div>
+                            <div class="settings-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="intelligent-mode-checkbox">
+                                    <span class="toggle-switch"></span>
+                                    <span>Smart</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Compression Settings -->
+                        <div class="settings-section">
+                            <div class="section-label">Compression</div>
+                            <div class="settings-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="compression-checkbox" checked>
+                                    <span class="toggle-switch"></span>
+                                    <span>Enable</span>
+                                </label>
+                            </div>
+
+                            <div id="compression-options" class="compression-options">
+                                <div class="settings-group">
+                                    <label class="settings-label">Threshold:</label>
+                                    <input type="number" id="compression-threshold" class="threshold-input" min="2" max="30" step="1" value="10" placeholder="10">
+                                </div>
+
+                                <div class="settings-group">
+                                    <button type="button" id="stats-button" class="stats-btn" title="View stats">📊</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-area">
+                        <textarea
+                            id="user-input"
+                            placeholder="Type your message..."
+                            autocomplete="off"
+                            rows="3"
+                            required
+                        ></textarea>
+                        <button type="submit" id="send-button">
+                            <span class="button-text">Send</span>
+                            <span class="loading-spinner" style="display: none;">⏳</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer>
+            <p>Day 7 Challenge - Dialogue Compression and Token Optimization</p>
+        </footer>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Configure Response Structure</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Select which fields to include in structured responses (JSON/XML/Markdown):</p>
+
+                <div class="config-section">
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="answer" checked disabled>
+                        <span class="config-label">💬 Answer <span class="required">(required)</span></span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="category" id="field-category" checked>
+                        <span class="config-label">🏷️ Category</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="key_points" id="field-key-points" checked>
+                        <span class="config-label">✨ Key Points</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="confidence" id="field-confidence">
+                        <span class="config-label">📊 Confidence Level</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="sources" id="field-sources">
+                        <span class="config-label">📚 Sources</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="related_topics" id="field-related">
+                        <span class="config-label">🔗 Related Topics</span>
+                    </label>
+                </div>
+
+                <div class="custom-fields-section">
+                    <h4>✏️ Custom Fields</h4>
+                    <p class="custom-description">Add your own fields (comma-separated). Example: summary, examples, best_practices</p>
+                    <input
+                        type="text"
+                        id="custom-fields-input"
+                        class="custom-fields-input"
+                        placeholder="e.g., summary, examples, tips"
+                    >
+                    <div id="custom-fields-preview" class="custom-fields-preview"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="reset-config">Reset to Default</button>
+                <button class="btn-primary" id="save-config">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compression Stats Modal -->
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📊 Compression Statistics</h3>
+                <button class="modal-close" id="stats-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Messages</div>
+                        <div class="stat-value" id="stat-total-messages">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Summaries Created</div>
+                        <div class="stat-value" id="stat-summaries">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Recent Messages</div>
+                        <div class="stat-value" id="stat-recent">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Original Tokens</div>
+                        <div class="stat-value" id="stat-original-tokens">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Compressed Tokens</div>
+                        <div class="stat-value" id="stat-compressed-tokens">0</div>
+                    </div>
+                    <div class="stat-card highlight">
+                        <div class="stat-label">Tokens Saved</div>
+                        <div class="stat-value" id="stat-savings">0</div>
+                        <div class="stat-percent" id="stat-percent">0%</div>
+                    </div>
+                </div>
+                <div class="summaries-section" id="summaries-section" style="display:none;">
+                    <h4>📝 Conversation Summaries</h4>
+                    <div id="summaries-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
