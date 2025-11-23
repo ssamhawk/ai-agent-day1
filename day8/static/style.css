@@ -1938,3 +1938,166 @@ footer {
     line-height: 1.6;
     color: var(--text-secondary);
 }
+
+/* ===== MCP Integration Styles ===== */
+
+.mcp-servers-info {
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-color);
+}
+
+.mcp-servers-info h3 {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.servers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.server-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.server-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary-color);
+}
+
+.server-icon {
+    font-size: 2em;
+    line-height: 1;
+}
+
+.server-info {
+    flex: 1;
+}
+
+.server-name {
+    font-weight: 600;
+    font-size: 0.95em;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.server-description {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.server-status {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.status-badge {
+    font-size: 0.75em;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-running {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.status-stopped {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.status-ready {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.status-connecting {
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+}
+
+/* MCP Status Bar */
+.mcp-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(var(--primary-rgb), 0.1);
+    border-radius: 8px;
+    font-size: 0.85em;
+    margin-right: 12px;
+}
+
+.mcp-status-bar .status-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.status-indicators {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.server-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    cursor: help;
+}
+
+.server-indicator.status-running {
+    background: rgba(34, 197, 94, 0.15);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+.server-indicator.status-stopped {
+    background: rgba(239, 68, 68, 0.15);
+    opacity: 0.6;
+}
+
+.loading-dots {
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.status-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.no-servers, .loading, .error {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-secondary);
+    font-size: 0.95em;
+}
+
+.error {
+    color: #ef4444;
+}

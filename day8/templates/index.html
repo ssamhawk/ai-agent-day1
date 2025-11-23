@@ -3,20 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Agent - Day 7: Compression</title>
+    <title>AI Agent - Day 8: MCP Integration</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='day8-ui-patch.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='modern-settings.css') }}">
+    <script src="{{ url_for('static', filename='utils.js') }}"></script>
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- Settings Toggle Button -->
+    <button class="settings-toggle" id="settings-toggle" aria-label="Toggle settings panel" aria-expanded="false" aria-controls="settings-panel">
+        ⚙️ Settings
+    </button>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel settings-panel--light" id="settings-panel" aria-hidden="true">
+        <header class="settings-panel__header">
+            <div class="settings-panel__header-main">
+                <h2 class="settings-panel__title">Settings</h2>
+            </div>
+            <div class="settings-panel__header-actions">
+                <button class="settings-close" id="settings-close" type="button" aria-label="Close settings">✕</button>
+            </div>
+        </header>
+
+        <div class="settings-panel__content">
+            <!-- Response Configuration -->
+            <section class="settings-section">
+                <div class="section-label">Response</div>
+
+                <!-- Temperature: label + інпут + + -->
+                <div class="field-group field-group--row field-group--temperature">
+                    <label class="field-label">Temperature</label>
+                    <div class="temperature-slots-container" id="temperature-slots">
+                        <div class="temperature-slot">
+                            <input type="number" class="temp-input" min="0" max="2" step="0.1" placeholder="0.7">
+                            <button type="button" class="remove-temp" style="display:none;">✕</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-temperature" class="add-temp-button">+</button>
+                </div>
+
+                <!-- Format: label + селект + ⚙️ -->
+                <div class="field-group field-group--row">
+                    <label class="field-label">Format</label>
+                    <select id="response-format" class="field-input format-select">
+                        <option value="plain">Plain</option>
+                        <option value="json">JSON</option>
+                        <option value="markdown">Markdown</option>
+                        <option value="xml">XML</option>
+                    </select>
+                    <button type="button" id="config-button" class="icon-btn" title="Configure fields">⚙️</button>
+                </div>
+
+                <!-- Max Tokens: label + інпут -->
+                <div class="field-group field-group--row">
+                    <label class="field-label">Max Tokens</label>
+                    <input type="number" id="max-tokens-input" class="field-input max-tokens-input" min="1" max="16384" step="1" placeholder="Auto">
+                </div>
+            </section>
+
+            <div class="settings-divider"></div>
+
+            <!-- Modes -->
+            <section class="settings-section">
+                <div class="section-label">Modes</div>
+
+                <div class="toggle-item">
+                    <input type="checkbox" id="intelligent-mode-checkbox" class="toggle-input">
+                    <label for="intelligent-mode-checkbox" class="toggle-slider"></label>
+                    <div class="toggle-content">
+                        <div class="toggle-text">
+                            <div class="toggle-title">Smart Mode</div>
+                            <div class="toggle-desc">Multi-agent system with MCP servers (Brave Search, Filesystem)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="settings-divider"></div>
+
+            <!-- Compression Settings -->
+            <section class="settings-section">
+                <div class="section-label">Compression</div>
+
+                <div class="toggle-item">
+                    <input type="checkbox" id="compression-checkbox" class="toggle-input" checked>
+                    <label for="compression-checkbox" class="toggle-slider"></label>
+                    <div class="toggle-content">
+                        <div class="toggle-text">
+                            <div class="toggle-title">Enable Compression</div>
+                            <div class="toggle-desc">Automatically compress conversation history</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="compression-options" class="compression-options">
+                    <div class="field-group field-group--row">
+                        <label class="field-label">Threshold</label>
+                        <input type="number" id="compression-threshold" class="field-input" min="2" max="30" step="1" value="10">
+                    </div>
+                    <button class="stats-btn" type="button" id="stats-button">
+                        <span class="stats-btn__icon">📈</span>
+                        <span class="stats-btn__label">Stats</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <div class="header-left">
-                <h1>🤖 AI Agent <span class="version-badge">Day 7</span></h1>
-                <p class="subtitle">🗜️ Dialogue compression and token optimization</p>
+                <h1>🤖 AI Agent <span class="version-badge">Day 8</span></h1>
+                <p class="subtitle">🔌 MCP Integration - Model Context Protocol</p>
             </div>
             <div class="header-right">
+                <div class="mcp-status-bar" id="mcp-status-bar">
+                    <div class="status-indicators" id="status-indicators">
+                        <span class="loading-dots">Loading...</span>
+                    </div>
+                </div>
                 <button class="clear-button" id="clear-button" aria-label="Clear conversation">🗑️ Clear</button>
                 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
             </div>
@@ -25,37 +136,20 @@
         <div class="chat-container">
             <div id="chat-messages" class="chat-messages">
                 <div class="welcome-message">
-                    <h2>🗜️ Dialogue Compression</h2>
-                    <p>Smart token optimization through automatic conversation compression.</p>
+                    <h2>🔌 Model Context Protocol Integration</h2>
+                    <p class="welcome-desc">AI assistant with real-time access to web search and file system tools via MCP</p>
 
-                    <div class="features-grid">
-                        <div class="feature-item">
-                            <span class="feature-icon">✨</span>
-                            <div>
-                                <strong>Auto-Compression</strong>
-                                <p>Enabled by default at 10 messages</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <span class="feature-icon">🔄</span>
-                            <div>
-                                <strong>Recursive Summaries</strong>
-                                <p>Summaries compress when exceeding 3</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <span class="feature-icon">📏</span>
-                            <div>
-                                <strong>Adaptive Size</strong>
-                                <p>100-200 tokens based on content</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <span class="feature-icon">📊</span>
-                            <div>
-                                <strong>Token Savings</strong>
-                                <p>Track compression efficiency</p>
-                            </div>
+                    <div class="features-compact">
+                        <span class="feature-tag">🔍 Web Search via Brave API</span>
+                        <span class="feature-tag">📁 Filesystem Operations</span>
+                        <span class="feature-tag">🛠️ MCP Tool Calling</span>
+                        <span class="feature-tag">⚡ Streaming Responses</span>
+                    </div>
+
+                    <div class="mcp-servers-compact">
+                        <div class="servers-label">Active Servers:</div>
+                        <div id="servers-list" class="servers-inline">
+                            <span class="loading-text">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -63,74 +157,6 @@
 
             <div class="input-container">
                 <form id="chat-form">
-                    <div class="settings-bar">
-                        <!-- Response Configuration -->
-                        <div class="settings-section">
-                            <div class="section-label">Response</div>
-                            <div class="settings-group">
-                                <label class="settings-label">Temp:</label>
-                                <div class="temperature-slots-container" id="temperature-slots">
-                                    <div class="temperature-slot">
-                                        <input type="number" class="temp-input" min="0" max="2" step="0.1" placeholder="0.7">
-                                        <button type="button" class="remove-temp" style="display: none;">✕</button>
-                                    </div>
-                                </div>
-                                <button type="button" id="add-temperature" class="add-temp-button" title="Add temperature">+</button>
-                            </div>
-
-                            <div class="settings-group">
-                                <label class="settings-label">Format:</label>
-                                <select id="response-format" class="format-select">
-                                    <option value="plain">Plain</option>
-                                    <option value="json">JSON</option>
-                                    <option value="markdown">MD</option>
-                                    <option value="xml">XML</option>
-                                </select>
-                                <button type="button" id="config-button" class="icon-btn" title="Configure fields">⚙️</button>
-                            </div>
-
-                            <div class="settings-group">
-                                <label class="settings-label">Max tokens:</label>
-                                <input type="number" id="max-tokens-input" class="max-tokens-input" min="1" max="16384" step="1" placeholder="Auto" title="Maximum tokens for response (1-16384, empty=auto)">
-                            </div>
-                        </div>
-
-                        <!-- Modes -->
-                        <div class="settings-section">
-                            <div class="section-label">Modes</div>
-                            <div class="settings-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="intelligent-mode-checkbox">
-                                    <span class="toggle-switch"></span>
-                                    <span>Smart</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Compression Settings -->
-                        <div class="settings-section">
-                            <div class="section-label">Compression</div>
-                            <div class="settings-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="compression-checkbox" checked>
-                                    <span class="toggle-switch"></span>
-                                    <span>Enable</span>
-                                </label>
-                            </div>
-
-                            <div id="compression-options" class="compression-options">
-                                <div class="settings-group">
-                                    <label class="settings-label">Threshold:</label>
-                                    <input type="number" id="compression-threshold" class="threshold-input" min="2" max="30" step="1" value="10" placeholder="10">
-                                </div>
-
-                                <div class="settings-group">
-                                    <button type="button" id="stats-button" class="stats-btn" title="View stats">📊</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="input-area">
                         <textarea
                             id="user-input"
@@ -149,7 +175,7 @@
         </div>
 
         <footer>
-            <p>Day 7 Challenge - Dialogue Compression and Token Optimization</p>
+            <p>Day 8 Challenge - MCP Integration and Tool Connectivity</p>
         </footer>
     </div>
 

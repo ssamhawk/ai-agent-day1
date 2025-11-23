@@ -21,6 +21,37 @@ const compressionOptions = document.getElementById('compression-options');
 const statsButton = document.getElementById('stats-button');
 const statsModal = document.getElementById('stats-modal');
 const statsClose = document.getElementById('stats-close');
+const settingsToggle = document.getElementById('settings-toggle');
+const settingsPanel = document.querySelector('.settings-panel');
+const settingsClose = document.getElementById('settings-close');
+
+// Settings panel toggle functionality
+function toggleSettingsPanel(open) {
+    if (open) {
+        settingsPanel.classList.add('is-open');
+        settingsToggle.classList.add('is-open');
+    } else {
+        settingsPanel.classList.remove('is-open');
+        settingsToggle.classList.remove('is-open');
+    }
+
+    // Update ARIA attributes for accessibility
+    const isOpen = settingsPanel.classList.contains('is-open');
+    settingsPanel.setAttribute('aria-hidden', !isOpen);
+    settingsToggle.setAttribute('aria-expanded', isOpen);
+}
+
+settingsToggle.addEventListener('click', () => {
+    const isCurrentlyOpen = settingsPanel.classList.contains('is-open');
+    toggleSettingsPanel(!isCurrentlyOpen);
+});
+
+// Close button handler
+if (settingsClose) {
+    settingsClose.addEventListener('click', () => {
+        toggleSettingsPanel(false);
+    });
+}
 
 // Toggle compression options visibility
 function toggleCompressionOptions() {
@@ -91,8 +122,11 @@ async function clearOnPageLoad() {
     }
 }
 
-// Initialize: fetch CSRF token then clear session
-fetchCsrfToken().then(() => clearOnPageLoad());
+// Initialize: fetch CSRF token then clear session and init WebSocket
+fetchCsrfToken().then(() => {
+    clearOnPageLoad();
+    initMCPWebSocket();
+});
 
 // Field name validation
 function isValidFieldName(name) {
@@ -534,16 +568,7 @@ function renderXML(text) {
     }
 }
 
-/**
- * Escape HTML to prevent XSS
- * @param {string} text - Text to escape
- * @returns {string} Escaped text
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// escapeHtml moved to utils.js
 
 /**
  * Display temperature comparison results
@@ -1032,4 +1057,191 @@ resetConfigButton.addEventListener('click', () => {
 function getEnabledFields() {
     const standardFields = Object.keys(currentConfig).filter(key => currentConfig[key]);
     return [...standardFields, ...customFields];
+}
+
+// ===== MCP Integration with WebSocket =====
+
+// WebSocket connection for real-time MCP status
+let mcpSocket = null;
+
+/**
+ * Initialize WebSocket connection for MCP status updates
+ */
+function initMCPWebSocket() {
+    // Initialize Socket.IO connection
+    mcpSocket = io({
+        transports: ['websocket', 'polling']
+    });
+
+    // Connection event handlers
+    mcpSocket.on('connect', () => {
+        console.log('WebSocket connected for MCP status');
+    });
+
+    mcpSocket.on('disconnect', () => {
+        console.log('WebSocket disconnected');
+        const statusIndicators = document.getElementById('status-indicators');
+        if (statusIndicators) {
+            statusIndicators.innerHTML = '<span class="loading-dots">Disconnected</span>';
+        }
+    });
+
+    // Listen for MCP status updates
+    mcpSocket.on('mcp_status', handleMCPStatusUpdate);
+
+    // Handle connection errors
+    mcpSocket.on('connect_error', (error) => {
+        console.error('WebSocket connection error:', error);
+        const statusIndicators = document.getElementById('status-indicators');
+        if (statusIndicators) {
+            statusIndicators.innerHTML = '<span class="status-error">Connection Error</span>';
+        }
+    });
+}
+
+/**
+ * Handle MCP status update from WebSocket
+ * @param {Object} data - Status update data from server
+ */
+async function handleMCPStatusUpdate(data) {
+    const serversList = document.getElementById('servers-list');
+    const statusIndicators = document.getElementById('status-indicators');
+
+    try {
+        if (data.success && data.status) {
+            const status = data.status;
+
+            // Update status indicators in header
+            if (statusIndicators && status.connected) {
+                const serverChips = status.servers.map(serverName => {
+                    const icon = getServerIcon(serverName);
+                    const displayName = getServerDisplayName(serverName);
+                    const className = `server-chip ${serverName}`;
+                    return `<span class="${className}" title="${escapeHtml(serverName)}"><span class="status-dot active"></span><span class="icon">${icon}</span>${displayName}</span>`;
+                }).join('');
+                statusIndicators.innerHTML = serverChips;
+            } else if (statusIndicators) {
+                statusIndicators.innerHTML = '<span class="loading-dots">Disconnected</span>';
+            }
+
+            // Fetch available tools
+            const toolsResponse = await fetch('/api/mcp/tools', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const toolsData = await toolsResponse.json();
+
+            if (toolsResponse.ok && toolsData.success) {
+                displayMCPServers(status, toolsData.tools);
+            } else {
+                displayMCPStatus(status);
+            }
+        } else {
+            serversList.innerHTML = '<p class="error">Failed to load MCP status</p>';
+            if (statusIndicators) {
+                statusIndicators.innerHTML = '<span class="status-error">Error</span>';
+            }
+        }
+    } catch (error) {
+        console.error('Error handling MCP status update:', error);
+        serversList.innerHTML = '<p class="error">Error processing MCP status</p>';
+        if (statusIndicators) {
+            statusIndicators.innerHTML = '<span class="status-error">Error</span>';
+        }
+    }
+}
+
+/**
+ * Display MCP status when tools data is unavailable
+ */
+function displayMCPStatus(status) {
+    const serversList = document.getElementById('servers-list');
+
+    if (!status.connected) {
+        serversList.innerHTML = '<p class="no-servers">MCP servers not connected</p>';
+        return;
+    }
+
+    serversList.innerHTML = `
+        <div class="mcp-status-info">
+            <p><strong>Mode:</strong> ${escapeHtml(status.mode || 'unknown')}</p>
+            <p><strong>Servers:</strong> ${status.servers.length}</p>
+            <p><strong>Total Tools:</strong> ${status.tools_count || 0}</p>
+            ${status.info ? `<p class="info-note">ℹ️ ${escapeHtml(status.info)}</p>` : ''}
+        </div>
+    `;
+}
+
+/**
+ * Display MCP servers in the UI
+ * @param {Object} status - MCP status object
+ * @param {Object} tools - MCP tools object (server_name -> [tools])
+ */
+function displayMCPServers(status, tools) {
+    const serversList = document.getElementById('servers-list');
+
+    if (!status.connected || !status.servers || status.servers.length === 0) {
+        serversList.innerHTML = '<p class="no-servers">No MCP servers connected</p>';
+        return;
+    }
+
+    // Build server badges
+    serversList.innerHTML = status.servers.map(serverName => {
+        const icon = getServerIcon(serverName);
+        const displayName = getServerDisplayName(serverName);
+        const className = `server-badge connected ${serverName}`;
+        return `<span class="${className}" title="${escapeHtml(serverName)}"><span class="status-dot"></span>${icon} ${displayName}</span>`;
+    }).join('');
+
+    // Add mode info if available
+    if (status.info) {
+        serversList.innerHTML += `
+            <div class="mcp-mode-info">
+                <p>ℹ️ ${escapeHtml(status.info)}</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Get icon for server type
+ * @param {string} serverName - Server name
+ * @returns {string} Icon emoji
+ */
+function getServerIcon(serverName) {
+    const icons = {
+        'filesystem': '📁',
+        'sqlite': '🗄️',
+        'brave-search': '🔍',
+        'brave_search': '🔍',
+        'fetch': '🌐',
+        'github': '🐙',
+        'slack': '💬',
+        'google-drive': '📂'
+    };
+
+    return icons[serverName] || '🔌';
+}
+
+/**
+ * Get display name for server type
+ * @param {string} serverName - Server name
+ * @returns {string} Display name
+ */
+function getServerDisplayName(serverName) {
+    const names = {
+        'filesystem': 'Files',
+        'sqlite': 'SQLite',
+        'brave-search': 'Brave',
+        'brave_search': 'Brave',
+        'fetch': 'Fetch',
+        'github': 'GitHub',
+        'slack': 'Slack',
+        'google-drive': 'Drive'
+    };
+
+    return names[serverName] || serverName;
 }
