@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from contextlib import contextmanager
 from threading import Lock
+import os
 
 
 class SimpleMemoryStorage:
@@ -167,10 +168,29 @@ class SimpleMemoryStorage:
 
             conversations = []
             for row in cursor.fetchall():
+                # Get title - use AI-generated title or fallback to first user message
+                title = row['title']
+                if not title:
+                    # Get first user message as fallback title
+                    cursor.execute("""
+                        SELECT content FROM messages
+                        WHERE conversation_id = ? AND role = 'user'
+                        ORDER BY timestamp ASC
+                        LIMIT 1
+                    """, (row['id'],))
+                    first_msg = cursor.fetchone()
+                    if first_msg:
+                        # Truncate to 50 characters
+                        title = first_msg['content'][:50]
+                        if len(first_msg['content']) > 50:
+                            title += '...'
+                    else:
+                        title = 'New conversation'
+
                 conversations.append({
                     'id': row['id'],
                     'session_id': row['session_id'],
-                    'title': row['title'] or 'New conversation',
+                    'title': title,
                     'last_updated': row['last_updated'],
                     'created_at': row['created_at'],
                     'message_count': row['total_messages'],
@@ -265,6 +285,108 @@ class SimpleMemoryStorage:
     # MESSAGE MANAGEMENT
     # =============================================
 
+    def _maybe_generate_title(self, conversation_id: int, conn):
+        """
+        Auto-generate conversation title after 6 messages if title not set
+
+        Uses OpenAI to create a short summary title from first 6 messages
+        """
+        cursor = conn.cursor()
+
+        # Check if title already exists
+        cursor.execute("""
+            SELECT title FROM conversations WHERE id = ?
+        """, (conversation_id,))
+
+        row = cursor.fetchone()
+        if row and row['title']:
+            return  # Title already set
+
+        # Count messages
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM messages WHERE conversation_id = ?
+        """, (conversation_id,))
+
+        count = cursor.fetchone()['count']
+
+        # Generate title exactly after 6 messages (3 exchanges)
+        if count == 6:
+            # Get first 6 messages
+            cursor.execute("""
+                SELECT role, content FROM messages
+                WHERE conversation_id = ?
+                ORDER BY timestamp ASC
+                LIMIT 6
+            """, (conversation_id,))
+
+            messages = cursor.fetchall()
+
+            # Generate title using OpenAI
+            title = self._generate_ai_title(messages)
+
+            # Update title
+            cursor.execute("""
+                UPDATE conversations
+                SET title = ?
+                WHERE id = ?
+            """, (title, conversation_id))
+
+            conn.commit()
+            self.logger.info(f"Auto-generated title for conversation {conversation_id}: {title}")
+
+    def _generate_ai_title(self, messages: List) -> str:
+        """Generate title using OpenAI based on conversation context"""
+        try:
+            from openai import OpenAI
+
+            # Build conversation context
+            context = ""
+            for msg in messages:
+                role = msg['role']
+                content = msg['content'][:200]  # Limit length
+                context += f"{role}: {content}\n"
+
+            # Call OpenAI to generate title
+            client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Generate a short, concise title (max 50 characters) that summarizes the main topic of this conversation. Return ONLY the title, nothing else."
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Conversation:\n{context}\n\nGenerate a short title:"
+                    }
+                ],
+                temperature=0.7,
+                max_tokens=20
+            )
+
+            title = response.choices[0].message.content.strip()
+
+            # Remove quotes if present
+            title = title.strip('"\'')
+
+            # Limit to 60 characters
+            if len(title) > 60:
+                title = title[:60] + "..."
+
+            return title
+
+        except Exception as e:
+            self.logger.error(f"Error generating AI title: {e}")
+            # Fallback to first user message
+            for msg in messages:
+                if msg['role'] == 'user' and len(msg['content']) > 10:
+                    title = msg['content'][:60]
+                    if len(msg['content']) > 60:
+                        title += "..."
+                    return title
+            return "New Chat"
+
     def save_message(self, role: str, content: str, token_count: int = 0,
                     conversation_id: Optional[int] = None, metadata: Optional[Dict] = None) -> int:
         """
@@ -297,6 +419,10 @@ class SimpleMemoryStorage:
             message_id = cursor.lastrowid
 
             self.logger.debug(f"Saved {role} message {message_id} ({token_count} tokens)")
+
+            # Auto-generate title after 6 messages if not set
+            self._maybe_generate_title(conversation_id, conn)
+
             return message_id
 
     # =============================================
@@ -497,24 +623,35 @@ class SimpleMemoryStorage:
     def _format_time_ago(self, timestamp: str) -> str:
         """Format timestamp as 'X minutes ago'"""
         try:
-            dt = datetime.fromisoformat(timestamp)
+            # Parse timestamp - SQLite stores in local time
+            dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+
+            # Remove timezone info if present for comparison
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)
+
+            # Get current time in same timezone
             now = datetime.now()
             diff = now - dt
+
+            # Handle negative diff (future timestamps - shouldn't happen)
+            if diff.total_seconds() < 0:
+                return "Just now"
 
             if diff.days > 30:
                 return dt.strftime('%b %d')
             elif diff.days > 0:
                 return f"{diff.days}d ago"
-            elif diff.seconds > 3600:
+            elif diff.seconds >= 3600:
                 hours = diff.seconds // 3600
                 return f"{hours}h ago"
-            elif diff.seconds > 60:
+            elif diff.seconds >= 60:
                 minutes = diff.seconds // 60
                 return f"{minutes}m ago"
             else:
                 return "Just now"
         except Exception as e:
-            self.logger.error(f"Error formatting time: {e}")
+            self.logger.error(f"Error formatting time: {e} for timestamp: {timestamp}")
             return "Unknown"
 
     def clear_all(self) -> bool:

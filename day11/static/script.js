@@ -334,6 +334,11 @@ chatForm.addEventListener('submit', async (e) => {
                     keep_recent: 2
                 };
 
+                // Add conversation_id if available (from sidebar)
+                if (window.currentConversationId) {
+                    requestBody.conversation_id = window.currentConversationId;
+                }
+
                 // Only add max_tokens if it's a valid number
                 if (maxTokens && maxTokens > 0) {
                     requestBody.max_tokens = maxTokens;
@@ -1341,3 +1346,16 @@ function displayPipelineResult(result) {
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+// Expose addMessage as window.appendMessage for sidebar.js compatibility
+// Expose addMessage as window.appendMessage for sidebar.js compatibility
+window.appendMessage = function(role, content) {
+    const type = role === "user" ? "user" : "ai";
+    addMessage(content, type);
+    
+    // Dispatch event for sidebar to reload after AI message
+    if (role === "assistant" || role === "ai") {
+        console.log('🔔 AI message added event dispatched');
+        document.dispatchEvent(new CustomEvent("ai-message-added"));
+    }
+};

@@ -1,9 +1,12 @@
 /**
  * Sidebar Management for Day 11 - Conversation History
+ * Matches existing app design and functionality
  */
 
-// Current active conversation
+// Current active conversation - expose globally for script.js
+window.currentConversationId = null;
 let currentConversationId = null;
+let sidebarHidden = false;
 
 /**
  * Load and render sidebar conversations
@@ -63,7 +66,7 @@ function renderConversations(grouped) {
     });
 
     if (!hasAnyConversations) {
-        showEmptyState(listContainer, 'No conversations yet');
+        showEmptyState(listContainer, 'No conversations yet. Start chatting!');
     }
 }
 
@@ -132,31 +135,39 @@ async function loadConversation(convId) {
         const data = await response.json();
 
         if (data.success) {
-            // Clear current messages
-            const messagesContainer = document.getElementById('messages');
+            // Clear current messages completely
+            const messagesContainer = document.getElementById('chat-messages');
             if (messagesContainer) {
                 messagesContainer.innerHTML = '';
             }
 
             // Render loaded messages
-            data.messages.forEach(msg => {
-                if (window.appendMessage) {
-                    window.appendMessage(msg.role, msg.content);
-                }
-            });
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    if (window.appendMessage) {
+                        window.appendMessage(msg.role, msg.content);
+                    }
+                });
+            }
 
             // Update active conversation
             currentConversationId = convId;
+            window.currentConversationId = convId;
             updateActiveConversation(convId);
+
+            // Save to localStorage for page refresh persistence
+            try {
+                localStorage.setItem('currentConversationId', convId);
+            } catch (e) {
+                console.warn('Could not save conversation ID:', e);
+            }
 
             console.log(`Loaded conversation ${convId} with ${data.messages.length} messages`);
         } else {
             console.error('Failed to load conversation:', data.error);
-            alert('Failed to load conversation');
         }
     } catch (error) {
         console.error('Error loading conversation:', error);
-        alert('Error loading conversation');
     }
 }
 
@@ -179,36 +190,50 @@ function updateActiveConversation(convId) {
  */
 async function createNewConversation() {
     try {
+        const messagesContainer = document.getElementById('chat-messages');
+
+        // Create new conversation on backend
         const response = await fetch('/api/conversations', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
             }
         });
 
         const data = await response.json();
 
         if (data.success) {
-            // Clear messages
-            const messagesContainer = document.getElementById('messages');
+            // Clear messages - keep only welcome message
             if (messagesContainer) {
+                // Find and keep welcome message, remove others
+                const welcomeMsg = messagesContainer.querySelector('.welcome-message');
                 messagesContainer.innerHTML = '';
+                if (welcomeMsg) {
+                    messagesContainer.appendChild(welcomeMsg);
+                }
             }
 
-            // Update current conversation
+            // Update current conversation ID to new one
             currentConversationId = data.conversation_id;
+            window.currentConversationId = data.conversation_id;
 
-            // Reload sidebar
+            // Save to localStorage for page refresh persistence
+            try {
+                localStorage.setItem('currentConversationId', data.conversation_id);
+            } catch (e) {
+                console.warn('Could not save conversation ID:', e);
+            }
+
+            // Reload sidebar to show new empty conversation
             await loadSidebar();
 
             console.log(`Created new conversation ${data.conversation_id}`);
         } else {
             console.error('Failed to create conversation:', data.error);
-            alert('Failed to create new conversation');
         }
     } catch (error) {
         console.error('Error creating conversation:', error);
-        alert('Error creating new conversation');
     }
 }
 
@@ -226,7 +251,8 @@ async function renameConversation(convId) {
             const response = await fetch(`/api/conversations/${convId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify({ title: newTitle.trim() })
             });
@@ -238,11 +264,9 @@ async function renameConversation(convId) {
                 console.log(`Renamed conversation ${convId}`);
             } else {
                 console.error('Failed to rename:', data.error);
-                alert('Failed to rename conversation');
             }
         } catch (error) {
             console.error('Error renaming conversation:', error);
-            alert('Error renaming conversation');
         }
     }
 }
@@ -257,7 +281,10 @@ async function deleteConversation(convId) {
 
     try {
         const response = await fetch(`/api/conversations/${convId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
         });
 
         const data = await response.json();
@@ -265,6 +292,12 @@ async function deleteConversation(convId) {
         if (data.success) {
             // If deleted active conversation, create new one
             if (convId == currentConversationId) {
+                // Clear localStorage since active conversation is deleted
+                try {
+                    localStorage.removeItem('currentConversationId');
+                } catch (e) {
+                    console.warn('Could not clear conversation ID:', e);
+                }
                 await createNewConversation();
             } else {
                 await loadSidebar();
@@ -273,11 +306,9 @@ async function deleteConversation(convId) {
             console.log(`Deleted conversation ${convId}`);
         } else {
             console.error('Failed to delete:', data.error);
-            alert('Failed to delete conversation');
         }
     } catch (error) {
         console.error('Error deleting conversation:', error);
-        alert('Error deleting conversation');
     }
 }
 
@@ -298,7 +329,6 @@ async function updateStatsDisplay() {
             const memoryStatusEl = document.getElementById('memory-status');
             if (memoryStatusEl) {
                 memoryStatusEl.textContent = 'Active';
-                memoryStatusEl.style.color = '#10a37f';
             }
         }
     } catch (error) {
@@ -316,22 +346,91 @@ async function clearAllMemory() {
 
     try {
         const response = await fetch('/api/memory/clear', {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
         });
 
         const data = await response.json();
 
         if (data.success) {
+            // Clear localStorage
+            try {
+                localStorage.removeItem('currentConversationId');
+            } catch (e) {
+                console.warn('Could not clear conversation ID:', e);
+            }
             await createNewConversation();
-            alert('All memory cleared');
+            console.log('All memory cleared');
         } else {
             console.error('Failed to clear memory:', data.error);
-            alert('Failed to clear memory');
         }
     } catch (error) {
         console.error('Error clearing memory:', error);
-        alert('Error clearing memory');
     }
+}
+
+/**
+ * Toggle sidebar visibility
+ */
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.querySelector('.sidebar-toggle');
+
+    if (sidebar) {
+        sidebarHidden = !sidebarHidden;
+
+        if (sidebarHidden) {
+            sidebar.classList.add('hidden');
+            if (toggleBtn) {
+                toggleBtn.textContent = '▶';
+            }
+        } else {
+            sidebar.classList.remove('hidden');
+            if (toggleBtn) {
+                toggleBtn.textContent = '◀';
+            }
+        }
+
+        // Save preference
+        try {
+            localStorage.setItem('sidebarHidden', sidebarHidden);
+        } catch (e) {
+            console.warn('Could not save sidebar state:', e);
+        }
+    }
+}
+
+/**
+ * Restore sidebar state from localStorage
+ */
+function restoreSidebarState() {
+    try {
+        // Don't restore hidden state - always show sidebar by default
+        // User can hide it manually if needed
+        const sidebar = document.querySelector('.sidebar');
+        const toggleBtn = document.querySelector('.sidebar-toggle');
+
+        if (sidebar) {
+            sidebar.classList.remove('hidden');
+        }
+        if (toggleBtn) {
+            toggleBtn.textContent = '◀';
+        }
+        sidebarHidden = false;
+    } catch (e) {
+        console.warn('Could not restore sidebar state:', e);
+    }
+}
+
+/**
+ * Get CSRF token
+ */
+function getCSRFToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
 }
 
 /**
@@ -352,7 +451,7 @@ function showLoadingState(container) {
 function showEmptyState(container, message) {
     container.innerHTML = `
         <div class="conversations-empty">
-            <p>${message}</p>
+            <p>${escapeHtml(message)}</p>
         </div>
     `;
 }
@@ -367,11 +466,70 @@ function escapeHtml(text) {
 }
 
 /**
+ * Auto-create conversation when sending first message
+ */
+function ensureActiveConversation() {
+    if (!currentConversationId) {
+        // Create conversation silently
+        createNewConversation();
+    }
+}
+
+/**
+ * Hook into send message to auto-create conversation
+ */
+function hookSendMessage() {
+    // Don't hook - let conversation be created automatically by backend
+    // The backend will create conversation when saving first message
+    console.log('Sidebar: Not hooking send message - conversation auto-created by backend');
+}
+
+/**
+ * Restore conversation from localStorage on page load
+ */
+async function restoreConversation() {
+    try {
+        const savedConvId = localStorage.getItem('currentConversationId');
+
+        if (savedConvId) {
+            const convId = parseInt(savedConvId);
+            console.log(`🔄 Restoring conversation ${convId} from localStorage`);
+
+            // Verify conversation exists in database
+            const response = await fetch(`/api/conversations/${convId}`);
+            const data = await response.json();
+
+            if (data.success && data.messages) {
+                // Load the saved conversation
+                await loadConversation(convId);
+                console.log(`✅ Restored conversation ${convId}`);
+            } else {
+                // Conversation doesn't exist anymore, clear localStorage
+                console.log(`⚠️ Conversation ${convId} not found, clearing localStorage`);
+                localStorage.removeItem('currentConversationId');
+            }
+        }
+    } catch (error) {
+        console.error('Error restoring conversation:', error);
+        localStorage.removeItem('currentConversationId');
+    }
+}
+
+/**
  * Initialize sidebar
  */
 function initSidebar() {
+    // Restore sidebar state
+    restoreSidebarState();
+
     // Load conversations on page load
     loadSidebar();
+
+    // Restore last active conversation from localStorage
+    restoreConversation();
+
+    // Hook into message sending
+    hookSendMessage();
 
     // New chat button
     const newChatBtn = document.getElementById('new-chat-btn');
@@ -385,12 +543,20 @@ function initSidebar() {
         clearAllBtn.addEventListener('click', clearAllMemory);
     }
 
+    // Sidebar toggle button
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+
     // Event delegation for rename/delete buttons
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('btn-rename')) {
+            e.stopPropagation();
             const convId = parseInt(e.target.dataset.id);
             renameConversation(convId);
         } else if (e.target.classList.contains('btn-delete')) {
+            e.stopPropagation();
             const convId = parseInt(e.target.dataset.id);
             deleteConversation(convId);
         }
@@ -405,3 +571,15 @@ if (document.readyState === 'loading') {
 } else {
     initSidebar();
 }
+
+// Auto-reload sidebar when AI responds (this creates/updates conversation)
+document.addEventListener('ai-message-added', function() {
+    console.log('📨 Sidebar received ai-message-added event');
+    // Reload sidebar after AI response - conversation is created on backend
+    // Wait 2 seconds to ensure title generation has completed (happens at 6 messages)
+    console.log('⏰ Scheduling sidebar reload in 2 seconds...');
+    setTimeout(() => {
+        console.log('🔄 Sidebar reload triggered');
+        loadSidebar();
+    }, 2000);
+});

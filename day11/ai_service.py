@@ -236,8 +236,14 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
         # Get conversation state
         state = get_conversation_state()
 
-        # Build context from compressed history
-        context_messages = build_context(state)
+        # Get active conversation ID from memory (if available)
+        conversation_id = None
+        if memory and hasattr(memory, 'active_conversation_id'):
+            conversation_id = memory.active_conversation_id
+            logger.info(f"Using active conversation ID: {conversation_id}")
+
+        # Build context from database (if conversation_id) or session state
+        context_messages = build_context(state, conversation_id=conversation_id)
 
         # Build full message list
         messages = [{"role": "system", "content": system_prompt}]
@@ -289,6 +295,11 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
         add_message_to_conversation("user", user_message, compression_enabled, threshold, keep_recent)
         add_message_to_conversation("assistant", ai_response, compression_enabled, threshold, keep_recent)
 
+        # Get token usage FIRST (needed for memory save)
+        output_tokens = response.usage.completion_tokens
+        actual_input_tokens = response.usage.prompt_tokens
+        total_tokens = response.usage.total_tokens
+
         # Save messages to memory if available
         if memory:
             try:
@@ -296,11 +307,6 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                 memory.save_message("assistant", ai_response, output_tokens)
             except Exception as e:
                 logger.error(f"Failed to save messages to memory: {e}")
-
-        # Get token usage
-        output_tokens = response.usage.completion_tokens
-        actual_input_tokens = response.usage.prompt_tokens
-        total_tokens = response.usage.total_tokens
 
         # Get updated stats
         updated_state = get_conversation_state()

@@ -86,6 +86,9 @@ def register_routes(app, limiter, client, memory_storage):
             compression_threshold = data.get('compression_threshold', DEFAULT_COMPRESSION_THRESHOLD)
             keep_recent = data.get('keep_recent', DEFAULT_RECENT_KEEP)
 
+            # Conversation ID from frontend
+            conversation_id = data.get('conversation_id')
+
             # Validate inputs
             if not user_message:
                 return jsonify({'error': 'Message cannot be empty', 'success': False}), 400
@@ -119,6 +122,11 @@ def register_routes(app, limiter, client, memory_storage):
                     keep_recent = 0
             except (ValueError, TypeError):
                 return jsonify({'error': 'Invalid compression settings', 'success': False}), 400
+
+            # Set active conversation if provided from frontend
+            if conversation_id and memory_storage:
+                memory_storage.active_conversation_id = conversation_id
+                logger.info(f"Using conversation ID from frontend: {conversation_id}")
 
             # Get AI response
             result = get_ai_response(

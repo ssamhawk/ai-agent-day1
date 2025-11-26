@@ -316,32 +316,44 @@ def perform_compression(state, threshold, keep_recent):
         perform_compression_internal(state, threshold, keep_recent)
 
 
-def build_context(state):
+def build_context(state, conversation_id=None):
     """
-    Build conversation context from compressed state
+    Build conversation context from database
+
+    Database-first approach: All context loaded from persistent storage
 
     Args:
-        state (dict): Conversation state
+        state (dict): Conversation state (unused, kept for API compatibility)
+        conversation_id (int, optional): Conversation ID to load from database
 
     Returns:
-        list: Messages for API (summaries + recent messages)
+        list: Messages for API from database
     """
     messages = []
 
-    # Add summaries as system messages
-    if state['summaries']:
-        summaries_text = "\n\n".join([
-            f"Previous conversation summary {i+1}:\n{summary}"
-            for i, summary in enumerate(state['summaries'])
-        ])
-        messages.append({
-            "role": "system",
-            "content": f"Context from previous conversation:\n\n{summaries_text}"
-        })
+    # Always use database if conversation_id is available
+    if conversation_id and memory:
+        try:
+            logger.info(f"Building context from database for conversation {conversation_id}")
+            db_messages = memory.load_conversation_messages(conversation_id)
 
-    # Add recent messages
-    messages.extend(state['recent_messages'])
+            # Convert database format to OpenAI format
+            for msg in db_messages:
+                messages.append({
+                    "role": msg['role'],
+                    "content": msg['content']
+                })
 
+            logger.info(f"Loaded {len(messages)} messages from database")
+            return messages
+
+        except Exception as e:
+            logger.error(f"Error loading from database: {e}")
+            # Return empty context on error (start fresh)
+            return []
+
+    # No conversation_id = new conversation with empty context
+    logger.info("No conversation_id provided, starting with empty context")
     return messages
 
 

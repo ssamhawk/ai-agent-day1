@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AI Agent - Day 11: External Memory</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +17,7 @@
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
 </head>
 <body>
+    <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar">
         <!-- Sidebar Header -->
@@ -49,6 +51,9 @@
 
     <!-- Main Content Wrapper -->
     <div class="main-wrapper">
+        <!-- Sidebar Toggle Button -->
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">◀</button>
+
         <!-- Settings Toggle Button -->
         <button class="settings-toggle" id="settings-toggle" aria-label="Toggle settings panel" aria-expanded="false" aria-controls="settings-panel">
             ⚙️ Settings
@@ -164,8 +169,8 @@
     <div class="container">
         <header>
             <div class="header-left">
-                <h1>🤖 AI Agent <span class="version-badge">Day 10</span></h1>
-                <p class="subtitle">🔗 MCP Pipeline Agent - Automated Tool Chaining</p>
+                <h1>🤖 AI Agent <span class="version-badge">Day 11</span></h1>
+                <p class="subtitle">💾 External Memory - Persistent Conversation History</p>
             </div>
             <div class="header-right">
                 <div class="mcp-status-bar" id="mcp-status-bar">
@@ -181,33 +186,7 @@
         <div class="chat-container">
             <div id="chat-messages" class="chat-messages">
                 <div class="welcome-message">
-                    <h2>🔗 MCP Pipeline Agent</h2>
-                    <p class="welcome-desc">Autonomous agent that chains MCP tools into automated pipelines</p>
-
-                    <div class="features-compact">
-                        <span class="feature-tag">🔗 Tool Chaining</span>
-                        <span class="feature-tag">🔍 Web Search</span>
-                        <span class="feature-tag">📁 File Operations</span>
-                        <span class="feature-tag">💾 Auto-Save Results</span>
-                        <span class="feature-tag">🤖 Autonomous Execution</span>
-                    </div>
-
-                    <div class="mcp-servers-compact">
-                        <div class="servers-label">Pipeline Tools:</div>
-                        <div id="servers-list" class="servers-inline">
-                            <span class="loading-text">Loading...</span>
-                        </div>
-                    </div>
-
-                    <div class="pipeline-examples" style="margin-top: 20px; padding: 15px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; border-left: 3px solid #6366f1;">
-                        <div style="font-weight: 600; margin-bottom: 8px; color: #6366f1;">📝 Example Pipelines:</div>
-                        <div style="font-size: 0.9em; line-height: 1.6; opacity: 0.9;">
-                            • "Research Python 3.12 features and save summary to ~/python_notes.md"<br>
-                            • "Find information about Flask security and create a guide"<br>
-                            • "List files in ~/projects and create an inventory report"<br>
-                            • "Search for Docker best practices and save to ~/docker_guide.txt"
-                        </div>
-                    </div>
+                    <h2>💾 AI Agent with External Memory</h2>
                 </div>
             </div>
 
@@ -231,7 +210,7 @@
         </div>
 
         <footer>
-            <p>Day 10 Challenge - MCP Pipeline Agent and Automated Tool Chaining</p>
+            <p>Day 11 Challenge - External Memory and Persistent Conversation History</p>
         </footer>
     </div>
 
@@ -340,6 +319,7 @@
     </div>
 
     </div> <!-- Close main-wrapper -->
+    </div> <!-- Close app-container -->
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='sidebar.js') }}"></script>

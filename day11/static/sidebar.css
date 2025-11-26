@@ -1,50 +1,65 @@
 /* Sidebar Styles for Day 11 - Conversation History */
+/* Matches existing design system with CSS variables */
 
-/* Main layout with sidebar */
-body {
+/* App container with sidebar */
+.app-container {
     display: flex;
+    width: 100%;
     height: 100vh;
-    margin: 0;
     overflow: hidden;
 }
 
-/* Sidebar */
+/* Sidebar container */
 .sidebar {
     width: 260px;
-    background: #202123;
-    color: #fff;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #444;
     z-index: 100;
     flex-shrink: 0;
+    transition: width 0.3s ease, background 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hidden state - collapse width instead of transform */
+.sidebar.hidden {
+    width: 0;
+    border-right: none;
 }
 
 /* Sidebar header */
 .sidebar-header {
     padding: 16px;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .btn-new-chat {
     width: 100%;
-    padding: 12px;
-    background: #10a37f;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     color: white;
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
-    transition: background 0.2s;
+    transition: opacity 0.2s, transform 0.1s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
+    box-shadow: var(--shadow);
 }
 
 .btn-new-chat:hover {
-    background: #0d8566;
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.btn-new-chat:active {
+    transform: translateY(0);
 }
 
 /* Conversations list */
@@ -59,12 +74,16 @@ body {
 }
 
 .conversations-list::-webkit-scrollbar-track {
-    background: #202123;
+    background: transparent;
 }
 
 .conversations-list::-webkit-scrollbar-thumb {
-    background: #444;
+    background: var(--border-color);
     border-radius: 3px;
+}
+
+.conversations-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 /* Date group */
@@ -74,7 +93,7 @@ body {
 
 .date-group h3 {
     font-size: 11px;
-    color: #8e8ea0;
+    color: var(--text-secondary);
     padding: 8px 12px;
     margin: 0;
     text-transform: uppercase;
@@ -88,19 +107,22 @@ body {
     align-items: center;
     padding: 10px 12px;
     margin: 2px 0;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.1s;
     position: relative;
     gap: 8px;
+    color: var(--text-primary);
 }
 
 .conversation-item:hover {
-    background: #2a2b32;
+    background: var(--bg-light);
+    transform: translateX(2px);
 }
 
 .conversation-item.active {
-    background: #343541;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-left: 3px solid var(--primary-color);
 }
 
 .conversation-content {
@@ -114,18 +136,19 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 2px;
-    color: #ececf1;
+    color: var(--text-primary);
+    font-weight: 500;
 }
 
 .conversation-time {
     font-size: 11px;
-    color: #8e8ea0;
+    color: var(--text-secondary);
 }
 
 /* Actions (show on hover) */
 .conversation-actions {
     display: none;
-    gap: 2px;
+    gap: 4px;
     opacity: 0;
     transition: opacity 0.2s;
 }
@@ -142,26 +165,26 @@ body {
     padding: 4px 6px;
     border-radius: 4px;
     font-size: 14px;
-    color: #8e8ea0;
+    color: var(--text-secondary);
     transition: all 0.2s;
 }
 
 .conversation-actions button:hover {
-    background: #444;
-    color: #fff;
+    background: var(--bg-light);
+    color: var(--primary-color);
 }
 
 /* Footer */
 .sidebar-footer {
     padding: 12px;
-    border-top: 1px solid #444;
+    border-top: 1px solid var(--border-color);
     font-size: 11px;
 }
 
 .memory-status,
 .stats {
     margin-bottom: 8px;
-    color: #8e8ea0;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -170,95 +193,189 @@ body {
 .memory-status span,
 .stats span {
     font-weight: 600;
-    color: #ececf1;
+    color: var(--text-primary);
 }
 
 .btn-clear {
     width: 100%;
     padding: 8px;
-    background: #d73737;
-    border: none;
-    border-radius: 4px;
-    color: white;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .btn-clear:hover {
-    background: #b92d2d;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: rgb(239, 68, 68);
 }
 
-/* Main content wrapper */
+/* Sidebar toggle button - arrow style - FIXED POSITION */
+.sidebar-toggle {
+    position: fixed;
+    top: 50%;
+    left: 244px; /* 260px - 16px */
+    transform: translateY(-50%);
+    z-index: 150;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0 8px 8px 0;
+    width: 32px;
+    height: 64px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-primary);
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg-light);
+}
+
+.sidebar-toggle:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* When sidebar is hidden, move toggle to left edge of screen */
+.sidebar.hidden + .main-wrapper .sidebar-toggle {
+    left: 0;
+}
+
+/* Main content wrapper adjustment */
 .main-wrapper {
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    min-width: 0; /* Important for flex items */
+}
+
+/* When sidebar is hidden, expand main wrapper */
+.sidebar.hidden + .main-wrapper {
+    width: 100%;
+    margin-left: 0;
+    flex: 1 1 100%;
+}
+
+/* Settings button - vertical layout with stacked letters */
+.settings-toggle {
+    position: fixed !important;
+    top: 50% !important;
+    right: 0 !important;
+    transform: translateY(-50%) !important;
+    z-index: 100 !important;
+    padding: 12px 8px !important;
+    min-width: auto !important;
+    width: auto !important;
+    writing-mode: vertical-lr !important;
+    text-orientation: upright !important;
+    letter-spacing: 2px !important;
+    line-height: 1 !important;
+}
+
+/* Make container expand to fill available space */
+.main-wrapper .container {
+    width: 100%;
+    max-width: 100%;
+    flex: 1 1 auto;
+}
+
+/* Chat container should also expand */
+.main-wrapper .chat-container {
+    width: 100%;
+    max-width: 100%;
+    flex: 1 1 auto;
+}
+
+/* Empty state */
+.conversations-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.conversations-empty p {
+    margin-bottom: 8px;
+}
+
+/* Loading state */
+.conversations-loading {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
-        left: -260px;
+        left: 0;
+        top: 0;
         height: 100vh;
         z-index: 1000;
-        transition: left 0.3s;
+        transform: translateX(-100%);
     }
 
-    .sidebar.open {
-        left: 0;
+    .sidebar:not(.hidden) {
+        transform: translateX(0);
     }
 
-    /* Mobile toggle button */
-    .mobile-toggle {
-        display: block;
+    .sidebar-toggle {
+        display: block !important;
+    }
+
+    /* Overlay when sidebar is open on mobile */
+    .sidebar-overlay {
+        display: none;
         position: fixed;
-        top: 16px;
-        left: 16px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
         z-index: 999;
-        background: #10a37f;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 12px;
-        color: white;
-        cursor: pointer;
-        font-size: 14px;
     }
 
-    .mobile-toggle:hover {
-        background: #0d8566;
+    .sidebar-overlay.visible {
+        display: block;
     }
 }
 
-/* Empty state */
-.conversations-empty {
-    padding: 20px;
-    text-align: center;
-    color: #8e8ea0;
-    font-size: 12px;
-}
+/* Desktop - always show toggle */
+@media (min-width: 769px) {
+    .sidebar-toggle {
+        display: block;
+    }
 
-/* Loading state */
-.conversations-loading {
-    padding: 20px;
-    text-align: center;
-    color: #8e8ea0;
-    font-size: 12px;
-}
-
-.loading-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #444;
-    border-top-color: #10a37f;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
+    .sidebar.hidden ~ .main-wrapper {
+        margin-left: 0;
+    }
 }
