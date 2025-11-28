@@ -1,0 +1,788 @@
+/* ===== MODERN SETTINGS PANEL - VARIANT C (PROFESSIONAL) ===== */
+
+:root {
+  --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --primary-solid: #667eea;
+  --secondary-solid: #764ba2;
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-dark: rgba(255, 255, 255, 0.12);
+  --bg-overlay: rgba(255, 255, 255, 0.95);
+  --bg-overlay-dark: rgba(17, 24, 39, 0.95);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+/* Settings Toggle Button - Center Right Side */
+.settings-toggle {
+  position: fixed !important;
+  right: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1001 !important;
+  background: var(--primary) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 6px 10px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+}
+
+.settings-toggle:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.settings-toggle.is-open {
+  right: 460px !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Settings Panel - Right Side, Wider */
+.settings-panel {
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  height: 100vh !important;
+  width: 440px !important;
+  background: var(--bg-overlay) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-left: 1px solid var(--border-light) !important;
+  box-shadow: -2px 0 32px rgba(0, 0, 0, 0.1) !important;
+  transform: translateX(100%) !important;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.settings-panel.is-open {
+  transform: translateX(0) !important;
+}
+
+[data-theme="dark"] .settings-panel {
+  background: var(--bg-overlay-dark) !important;
+  border-left-color: var(--border-dark) !important;
+}
+
+/* Panel Header - Compact */
+.settings-panel__header {
+  padding: 12px 16px !important;
+  background: var(--primary) !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+}
+
+.settings-panel__title {
+  font-size: 1.1em !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Stats Button - Compact, no full width */
+.stats-btn {
+  background: rgba(102, 126, 234, 0.1) !important;
+  border: 1px solid var(--border-light) !important;
+  color: var(--primary-solid) !important;
+  padding: 7px 12px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-weight: 600 !important;
+  margin-top: 0 !important;
+  white-space: nowrap !important;
+}
+
+[data-theme="dark"] .stats-btn {
+  background: rgba(102, 126, 234, 0.15) !important;
+  border-color: var(--border-dark) !important;
+  color: #93a5f0 !important;
+}
+
+.stats-btn:hover {
+  background: rgba(102, 126, 234, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+.stats-btn__icon {
+  font-size: 13px !important;
+}
+
+.stats-btn__label {
+  font-size: 12px !important;
+}
+
+/* Panel Content - Reduced padding */
+.settings-panel__content {
+  flex: 1 !important;
+  padding: 14px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.settings-panel__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-panel__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-panel__content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+[data-theme="dark"] .settings-panel__content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Section Styling - Reduced padding and margin */
+.settings-section {
+  background: white !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 12px !important;
+  margin-bottom: 0 !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.2s ease !important;
+}
+
+.settings-section:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+[data-theme="dark"] .settings-section {
+  background: rgba(31, 41, 55, 0.5) !important;
+  border-color: var(--border-dark) !important;
+}
+
+.section-title {
+  font-size: 1.05em !important;
+  font-weight: 700 !important;
+  margin: 0 0 16px 0 !important;
+  padding-bottom: 12px !important;
+  border-bottom: 2px solid !important;
+  border-image: var(--primary) 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.section-label {
+  font-size: 0.75em !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--primary-solid) !important;
+  margin-bottom: 8px !important;
+  text-align: left !important;
+}
+
+/* Settings Divider - Reduced margin */
+.settings-divider {
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, var(--border-light) 50%, transparent) !important;
+  margin: 8px 0 !important;
+}
+
+[data-theme="dark"] .settings-divider {
+  background: linear-gradient(90deg, transparent, var(--border-dark) 50%, transparent) !important;
+}
+
+/* Field Groups - Compact spacing, all left-aligned */
+.field-group {
+  margin-bottom: 12px !important;
+  display: block !important;
+}
+
+.field-group:last-child {
+  margin-bottom: 0 !important;
+}
+
+.field-group--row {
+  display: grid !important;
+  grid-template-columns: 90px 1fr auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding-left: 10px !important;
+  justify-items: start !important;
+}
+
+.field-group--row .field-label {
+  margin-bottom: 0 !important;
+  text-align: left !important;
+  justify-self: start !important;
+}
+
+.field-group--row .field-input {
+  width: 100% !important;
+  justify-self: stretch !important;
+}
+
+.field-group--row .icon-btn {
+  flex-shrink: 0 !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 2px solid var(--border-light) !important;
+  background: white !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme="dark"] .field-group--row .icon-btn {
+  background: rgba(31, 41, 55, 0.5) !important;
+  border-color: var(--border-dark) !important;
+}
+
+.field-group--row .icon-btn:hover {
+  border-color: var(--primary-solid) !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+}
+
+.field-label {
+  display: block !important;
+  font-weight: 600 !important;
+  font-size: 0.88em !important;
+  margin-bottom: 8px !important;
+  color: #374151 !important;
+  text-align: left !important;
+}
+
+[data-theme="dark"] .field-label {
+  color: #d1d5db !important;
+}
+
+/* Input Fields - Compact size */
+.field-input,
+.format-select {
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border: 2px solid var(--border-light) !important;
+  border-radius: var(--radius-sm) !important;
+  background: white !important;
+  font-size: 13px !important;
+  font-family: inherit !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="dark"] .field-input,
+[data-theme="dark"] .format-select {
+  background: rgba(31, 41, 55, 0.5) !important;
+  border-color: var(--border-dark) !important;
+  color: white !important;
+}
+
+.field-input:focus,
+.format-select:focus {
+  outline: none !important;
+  border-color: var(--primary-solid) !important;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Select with Custom Arrow */
+.select-wrapper {
+  position: relative !important;
+}
+
+.select-wrapper .format-select {
+  appearance: none !important;
+  padding-right: 40px !important;
+  cursor: pointer !important;
+}
+
+.select-arrow {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  font-size: 12px !important;
+  opacity: 0.5 !important;
+}
+
+/* Input with Hint */
+.input-with-hint {
+  position: relative !important;
+}
+
+.input-with-hint .field-input {
+  padding-right: 80px !important;
+}
+
+.input-hint {
+  position: absolute !important;
+  right: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 0.8em !important;
+  font-weight: 600 !important;
+  color: #9ca3af !important;
+  pointer-events: none !important;
+}
+
+/* Temperature Controls - Horizontal layout */
+.temperature-controls {
+  display: flex !important;
+  gap: 6px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+}
+
+.temperature-slots-container {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+.temperature-slot {
+  display: flex !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+.temp-input {
+  flex: 0 !important;
+  width: 70px !important;
+  padding: 8px 10px !important;
+  border: 2px solid var(--border-light) !important;
+  border-radius: var(--radius-sm) !important;
+  background: white !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme="dark"] .temp-input {
+  background: rgba(31, 41, 55, 0.5) !important;
+  border-color: var(--border-dark) !important;
+  color: white !important;
+}
+
+.temp-input:focus {
+  border-color: var(--primary-solid) !important;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1) !important;
+  outline: none !important;
+}
+
+.remove-temp {
+  width: 28px !important;
+  height: 28px !important;
+  border: 2px solid #fca5a5 !important;
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  border-radius: 5px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+}
+
+.remove-temp:hover {
+  background: #fecaca !important;
+  transform: scale(1.1) !important;
+}
+
+.add-temp-btn {
+  width: 34px !important;
+  height: 34px !important;
+  flex-shrink: 0 !important;
+  border: 2px dashed var(--border-light) !important;
+  background: transparent !important;
+  color: var(--primary-solid) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.add-temp-btn:hover {
+  border-style: solid !important;
+  border-color: var(--primary-solid) !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+  transform: scale(1.05) !important;
+}
+
+.hint-text {
+  font-size: 0.8em !important;
+  color: #6b7280 !important;
+  font-style: italic !important;
+  margin-top: 8px !important;
+}
+
+[data-theme="dark"] .hint-text {
+  color: #9ca3af !important;
+}
+
+/* Modern Toggle Switches - Compact */
+.toggle-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.toggle-item {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 10px !important;
+  background: #f9fafb !important;
+  border: 2px solid var(--border-light) !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  gap: 10px !important;
+}
+
+[data-theme="dark"] .toggle-item {
+  background: rgba(31, 41, 55, 0.3) !important;
+  border-color: var(--border-dark) !important;
+}
+
+.toggle-item:hover {
+  border-color: var(--primary-solid) !important;
+  transform: translateX(2px) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.toggle-input {
+  display: none !important;
+}
+
+.toggle-slider {
+  position: relative !important;
+  width: 44px !important;
+  height: 24px !important;
+  flex-shrink: 0 !important;
+  background: #d1d5db !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.toggle-slider::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 3px !important;
+  left: 3px !important;
+  width: 18px !important;
+  height: 18px !important;
+  background: white !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background: var(--primary-solid) !important;
+}
+
+.toggle-input:checked + .toggle-slider::before {
+  transform: translateX(20px) !important;
+}
+
+.toggle-content {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.toggle-icon {
+  font-size: 1.2em !important;
+}
+
+.toggle-text {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.toggle-title {
+  font-weight: 600 !important;
+  font-size: 0.9em !important;
+  color: #111827 !important;
+}
+
+[data-theme="dark"] .toggle-title {
+  color: #f3f4f6 !important;
+}
+
+.toggle-desc {
+  font-size: 0.75em !important;
+  color: #6b7280 !important;
+  line-height: 1.25 !important;
+}
+
+[data-theme="dark"] .toggle-desc {
+  color: #9ca3af !important;
+}
+
+/* Compression Options - Compact, horizontal layout */
+.compression-options {
+  margin-top: 10px !important;
+  padding: 10px !important;
+  background: #f3f4f6 !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-light) !important;
+  animation: slideDown 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  max-height: 100px !important;
+  overflow: hidden !important;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease !important;
+}
+
+.compression-options.hidden {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+[data-theme="dark"] .compression-options {
+  background: rgba(17, 24, 39, 0.5) !important;
+  border-color: var(--border-dark) !important;
+}
+
+.compression-options .field-group {
+  margin-bottom: 0 !important;
+  flex: 1 !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Panel Footer - Removed since we don't need save/reset buttons */
+.settings-panel__footer {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-panel {
+    width: 100% !important;
+    max-width: 340px !important;
+  }
+
+  .settings-toggle.is-open {
+    left: calc(100vw - 60px) !important;
+  }
+}
+
+/* ===== Layout inside settings panel – compact & aligned ===== */
+
+.settings-panel__content {
+  padding: 24px 22px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.settings-section {
+  padding: 14px 14px 16px !important;
+  border-radius: 14px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Грід для лейбл + контролів в один рядок */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.field-group--row {
+  display: grid !important;
+  grid-template-columns: 120px 1fr auto;
+  column-gap: 10px;
+  align-items: center !important;
+  padding-left: 10px !important;
+}
+
+.field-group--row .field-label {
+  margin-bottom: 0 !important;
+}
+
+/* Контроли розтягуються по ширині другої колонки */
+.field-group--row > .field-input,
+.field-group--row > .format-select,
+.field-group--row > .temperature-slots-container {
+  width: 100% !important;
+}
+
+/* Temperature: інпут + хрестик в один рядок */
+.field-group--temperature .temperature-slots-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Add-кнопка для температури – трохи менша, щоб не вибиватись */
+.add-temp-button {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+}
+
+/* Трохи дрібніші лейбли */
+.field-label {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary);
+}
+
+/* ===== Header & close button ===== */
+
+.settings-panel__header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 18px 22px 14px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-panel__header-main h2 {
+  font-size: 1rem !important;
+}
+
+.settings-panel__header-main p {
+  font-size: 0.8rem !important;
+  opacity: 0.8;
+}
+
+.settings-panel__header-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.settings-close {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 999px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.18s ease !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.settings-panel--light .settings-close {
+  color: #111827 !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.settings-close:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  transform: scale(1.1) !important;
+}
+
+.settings-panel--light .settings-close:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ===== Floating Settings button ===== */
+
+.settings-toggle {
+  position: fixed !important;
+  right: 18px !important;
+  top: 50% !important;
+  transform: translateY(-50%);
+  padding: 10px 14px !important;
+  border-radius: 999px 0 0 999px !important;
+  border: none !important;
+  background: linear-gradient(135deg, #ff7e5f, #7f5dff) !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.35) !important;
+  cursor: pointer !important;
+  z-index: 60 !important;
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.settings-toggle-icon {
+  font-size: 1em !important;
+}
+
+.settings-toggle-label {
+  white-space: nowrap !important;
+}
+
+.settings-toggle:hover {
+  padding-left: 18px !important;
+  box-shadow: -6px 0 20px rgba(0, 0, 0, 0.5) !important;
+  transform: translateY(-50%) scale(1.05) !important;
+}
+
+/* Коли панель відкрита – кнопка зсувається разом з нею */
+.settings-toggle.is-open {
+  right: calc(320px - 4px) !important;
+}
