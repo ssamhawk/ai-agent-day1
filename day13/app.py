@@ -107,7 +107,7 @@ logger.info("✅ Document indexing initialized")
 # Register routes and WebSocket handlers
 register_routes(app, limiter, client, memory_storage)
 register_socketio_handlers(socketio)
-register_indexing_routes(app, socketio, document_indexer, vector_store)
+register_indexing_routes(app, socketio, document_indexer, vector_store, csrf)
 
 logger.info("Application initialized successfully with modular architecture, pipeline agent, external memory, and document indexing")
 

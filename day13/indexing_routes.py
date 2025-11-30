@@ -35,7 +35,7 @@ def get_file_type(filename):
     return mapping.get(ext, 'text')
 
 
-def register_indexing_routes(app, socketio, indexer, vector_store):
+def register_indexing_routes(app, socketio, indexer, vector_store, csrf):
     """
     Register indexing routes
 
@@ -44,6 +44,7 @@ def register_indexing_routes(app, socketio, indexer, vector_store):
         socketio: SocketIO instance
         indexer: DocumentIndexer instance
         vector_store: VectorStore instance
+        csrf: CSRFProtect instance
     """
 
     @app.route('/indexing')
@@ -52,6 +53,7 @@ def register_indexing_routes(app, socketio, indexer, vector_store):
         return render_template('indexing.html')
 
     @app.route('/api/indexing/upload', methods=['POST'])
+    @csrf.exempt
     def upload_documents():
         """
         Upload and index documents
@@ -182,6 +184,7 @@ def register_indexing_routes(app, socketio, indexer, vector_store):
         return jsonify(results), 200
 
     @app.route('/api/indexing/search', methods=['POST'])
+    @csrf.exempt
     def search_documents():
         """
         Search for similar documents
@@ -248,6 +251,7 @@ def register_indexing_routes(app, socketio, indexer, vector_store):
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/indexing/clear', methods=['POST'])
+    @csrf.exempt
     def clear_index():
         """
         Clear entire index
@@ -263,6 +267,7 @@ def register_indexing_routes(app, socketio, indexer, vector_store):
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/indexing/delete/<path:filename>', methods=['DELETE'])
+    @csrf.exempt
     def delete_document(filename):
         """
         Delete a document from index
