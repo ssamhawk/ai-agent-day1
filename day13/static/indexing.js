@@ -5,6 +5,7 @@ let selectedFiles = [];
 let socket = null;
 
 // DOM Elements
+const themeToggle = document.getElementById('theme-toggle');
 const uploadZone = document.getElementById('upload-zone');
 const fileInput = document.getElementById('file-input');
 const selectedFilesContainer = document.getElementById('selected-files');
@@ -457,6 +458,24 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Theme toggle
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeIcon(savedTheme);
+
+themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+});
+
+function updateThemeIcon(theme) {
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
 
 // Initialize
 initSocket();

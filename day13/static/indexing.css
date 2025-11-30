@@ -19,6 +19,12 @@
 }
 
 /* Header Navigation */
+.header-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 .header-nav {
     display: flex;
     gap: 12px;
@@ -43,6 +49,33 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
+}
+
+.theme-toggle {
+    background: var(--bg-message);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-primary);
+    font-family: inherit;
+    height: 42px;
+    width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    padding: 0;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.05);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-subtle);
+}
+
+.theme-toggle:active {
+    transform: scale(0.98);
 }
 
 /* Card Styles */
@@ -518,14 +551,29 @@
     color: #065F46;
 }
 
+[data-theme="dark"] .similarity-high {
+    background: #065F46;
+    color: #D1FAE5;
+}
+
 .similarity-medium {
     background: #FEF3C7;
     color: #92400E;
 }
 
+[data-theme="dark"] .similarity-medium {
+    background: #92400E;
+    color: #FEF3C7;
+}
+
 .similarity-low {
     background: #FEE2E2;
     color: #991B1B;
+}
+
+[data-theme="dark"] .similarity-low {
+    background: #991B1B;
+    color: #FEE2E2;
 }
 
 .result-text {
