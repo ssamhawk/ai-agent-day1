@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>AI Agent - Day 13: Voice Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1764288470">
+    <link rel="stylesheet" href="{{ url_for('static', filename='day8-ui-patch.css') }}?v=1764288470">
+    <link rel="stylesheet" href="{{ url_for('static', filename='modern-settings.css') }}?v=1764288470">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar.css') }}?v=1764288470">
+    <link rel="stylesheet" href="{{ url_for('static', filename='voice-ui.css') }}?v=1764288470">
+    <script src="{{ url_for('static', filename='utils.js') }}"></script>
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <button id="new-chat-btn" class="btn-new-chat">
+                ➕ New Chat
+            </button>
+        </div>
+
+        <!-- Conversations List -->
+        <div class="conversations-list">
+            <div class="conversations-loading">
+                <div class="loading-spinner"></div>
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <div class="memory-status">
+                💾 Memory: <span id="memory-status">...</span>
+            </div>
+            <div class="stats">
+                📊 <span id="total-chats">0</span> conversations
+            </div>
+            <button id="clear-all-btn" class="btn-clear">
+                🗑️ Clear All
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <!-- Sidebar Toggle Button -->
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">◀</button>
+
+        <!-- Navigation -->
+        <nav class="top-nav">
+            <a href="/" class="nav-link active">💬 Voice Agent</a>
+            <a href="/indexing" class="nav-link">📚 Document Indexing</a>
+        </nav>
+
+        <!-- Settings Toggle Button -->
+        <button class="settings-toggle" id="settings-toggle" aria-label="Toggle settings panel" aria-expanded="false" aria-controls="settings-panel">
+            ⚙️ Settings
+        </button>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel settings-panel--light" id="settings-panel" aria-hidden="true">
+        <header class="settings-panel__header">
+            <div class="settings-panel__header-main">
+                <h2 class="settings-panel__title">Settings</h2>
+            </div>
+            <div class="settings-panel__header-actions">
+                <button class="settings-close" id="settings-close" type="button" aria-label="Close settings">✕</button>
+            </div>
+        </header>
+
+        <div class="settings-panel__content">
+            <!-- Response Configuration -->
+            <section class="settings-section">
+                <div class="section-label">Response</div>
+
+                <!-- Temperature: label + інпут + + -->
+                <div class="field-group field-group--row field-group--temperature">
+                    <label class="field-label">Temperature</label>
+                    <div class="temperature-slots-container" id="temperature-slots">
+                        <div class="temperature-slot">
+                            <input type="number" class="temp-input" min="0" max="2" step="0.1" placeholder="0.7">
+                            <button type="button" class="remove-temp" style="display:none;">✕</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-temperature" class="add-temp-button">+</button>
+                </div>
+
+                <!-- Format: label + селект + ⚙️ -->
+                <div class="field-group field-group--row">
+                    <label class="field-label">Format</label>
+                    <select id="response-format" class="field-input format-select">
+                        <option value="plain">Plain</option>
+                        <option value="json">JSON</option>
+                        <option value="markdown">Markdown</option>
+                        <option value="xml">XML</option>
+                    </select>
+                    <button type="button" id="config-button" class="icon-btn" title="Configure fields">⚙️</button>
+                </div>
+
+                <!-- Max Tokens: label + інпут -->
+                <div class="field-group field-group--row">
+                    <label class="field-label">Max Tokens</label>
+                    <input type="number" id="max-tokens-input" class="field-input max-tokens-input" min="1" max="16384" step="1" placeholder="Auto">
+                </div>
+            </section>
+
+            <div class="settings-divider"></div>
+
+            <!-- Modes -->
+            <section class="settings-section">
+                <div class="section-label">Modes</div>
+
+                <div class="toggle-item">
+                    <input type="checkbox" id="pipeline-mode-checkbox" class="toggle-input">
+                    <label for="pipeline-mode-checkbox" class="toggle-slider"></label>
+                    <div class="toggle-content">
+                        <div class="toggle-text">
+                            <div class="toggle-title">🔗 Pipeline Mode</div>
+                            <div class="toggle-desc">Autonomous multi-step tool chaining (search → process → save)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toggle-item">
+                    <input type="checkbox" id="intelligent-mode-checkbox" class="toggle-input">
+                    <label for="intelligent-mode-checkbox" class="toggle-slider"></label>
+                    <div class="toggle-content">
+                        <div class="toggle-text">
+                            <div class="toggle-title">Smart Mode</div>
+                            <div class="toggle-desc">Single-step MCP tools (Brave Search, Filesystem)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="settings-divider"></div>
+
+            <!-- Compression Settings -->
+            <section class="settings-section">
+                <div class="section-label">Compression</div>
+
+                <div class="toggle-item">
+                    <input type="checkbox" id="compression-checkbox" class="toggle-input" checked>
+                    <label for="compression-checkbox" class="toggle-slider"></label>
+                    <div class="toggle-content">
+                        <div class="toggle-text">
+                            <div class="toggle-title">Enable Compression</div>
+                            <div class="toggle-desc">Automatically compress conversation history</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="compression-options" class="compression-options">
+                    <div class="field-group field-group--row">
+                        <label class="field-label">Threshold</label>
+                        <input type="number" id="compression-threshold" class="field-input" min="2" max="30" step="1" value="10">
+                    </div>
+                    <button class="stats-btn" type="button" id="stats-button">
+                        <span class="stats-btn__icon">📈</span>
+                        <span class="stats-btn__label">Stats</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>🤖 AI Agent <span class="version-badge">Day 12</span></h1>
+                <p class="subtitle">🎤 Voice Agent - Speech → LLM → Text</p>
+            </div>
+            <div class="header-right">
+                <div class="mcp-status-bar" id="mcp-status-bar">
+                    <div class="status-indicators" id="status-indicators">
+                        <span class="loading-dots">Loading...</span>
+                    </div>
+                </div>
+                <button class="clear-button" id="clear-button" aria-label="Clear conversation">🗑️ Clear</button>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+            </div>
+        </header>
+
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="welcome-message">
+                    <h2>🎤 Voice Agent</h2>
+                    <p>Speak your query or type it below</p>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <form id="chat-form">
+                    <div class="input-area">
+                        <div class="voice-control">
+                            <span id="recording-timer" class="recording-timer-inline">00:00</span>
+                            <button type="button" id="voice-button" class="voice-button">
+                                🎤 Voice
+                            </button>
+                        </div>
+                        <textarea
+                            id="user-input"
+                            placeholder="Type or speak your message..."
+                            autocomplete="off"
+                            rows="3"
+                            required
+                        ></textarea>
+                        <button type="submit" id="send-button">
+                            <span class="button-text">Send</span>
+                            <span class="loading-spinner" style="display: none;">⏳</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer>
+            <p>Day 12 Challenge - Voice-driven AI Agent with Speech Recognition</p>
+        </footer>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Configure Response Structure</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Select which fields to include in structured responses (JSON/XML/Markdown):</p>
+
+                <div class="config-section">
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="answer" checked disabled>
+                        <span class="config-label">💬 Answer <span class="required">(required)</span></span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="category" id="field-category" checked>
+                        <span class="config-label">🏷️ Category</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="key_points" id="field-key-points" checked>
+                        <span class="config-label">✨ Key Points</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="confidence" id="field-confidence">
+                        <span class="config-label">📊 Confidence Level</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="sources" id="field-sources">
+                        <span class="config-label">📚 Sources</span>
+                    </label>
+
+                    <label class="config-option">
+                        <input type="checkbox" name="field" value="related_topics" id="field-related">
+                        <span class="config-label">🔗 Related Topics</span>
+                    </label>
+                </div>
+
+                <div class="custom-fields-section">
+                    <h4>✏️ Custom Fields</h4>
+                    <p class="custom-description">Add your own fields (comma-separated). Example: summary, examples, best_practices</p>
+                    <input
+                        type="text"
+                        id="custom-fields-input"
+                        class="custom-fields-input"
+                        placeholder="e.g., summary, examples, tips"
+                    >
+                    <div id="custom-fields-preview" class="custom-fields-preview"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="reset-config">Reset to Default</button>
+                <button class="btn-primary" id="save-config">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compression Stats Modal -->
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📊 Compression Statistics</h3>
+                <button class="modal-close" id="stats-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Messages</div>
+                        <div class="stat-value" id="stat-total-messages">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Summaries Created</div>
+                        <div class="stat-value" id="stat-summaries">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Recent Messages</div>
+                        <div class="stat-value" id="stat-recent">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Original Tokens</div>
+                        <div class="stat-value" id="stat-original-tokens">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Compressed Tokens</div>
+                        <div class="stat-value" id="stat-compressed-tokens">0</div>
+                    </div>
+                    <div class="stat-card highlight">
+                        <div class="stat-label">Tokens Saved</div>
+                        <div class="stat-value" id="stat-savings">0</div>
+                        <div class="stat-percent" id="stat-percent">0%</div>
+                    </div>
+                </div>
+                <div class="summaries-section" id="summaries-section" style="display:none;">
+                    <h4>📝 Conversation Summaries</h4>
+                    <div id="summaries-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div> <!-- Close main-wrapper -->
+    </div> <!-- Close app-container -->
+
+    <script src="{{ url_for('static', filename='script.js') }}?v=1764288751"></script>
+    <script src="{{ url_for('static', filename='sidebar.js') }}?v=1764288751"></script>
+    <script src="{{ url_for('static', filename='voice-ui.js') }}?v=1764288751"></script>
+</body>
+</html>
