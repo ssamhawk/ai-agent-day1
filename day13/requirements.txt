@@ -1,0 +1,9 @@
+flask
+flask-socketio
+flask-limiter
+flask-wtf
+openai
+python-dotenv
+tiktoken
+faiss-cpu
+numpy
