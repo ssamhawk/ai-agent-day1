@@ -477,6 +477,10 @@ function updateThemeIcon(theme) {
     themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
+// Initialize slider values
+minSimSlider.value = 0.0;
+minSimValue.textContent = '0.00';
+
 // Initialize
 initSocket();
 loadStatistics();

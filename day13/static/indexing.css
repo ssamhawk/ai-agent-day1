@@ -231,20 +231,19 @@
 
 .settings-content,
 .options-content {
-    margin-top: 12px;
-    padding: 16px;
+    margin-top: 0;
+    padding: 0;
     background: var(--bg-secondary);
     border-radius: 8px;
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    transition: all 0.3s ease;
 }
 
-.settings-content.expanded {
-    max-height: 300px;
-}
-
+.settings-content.expanded,
 .options-content.expanded {
+    margin-top: 12px;
+    padding: 16px;
     max-height: 300px;
 }
 

@@ -29,18 +29,32 @@ class VectorStore:
         self.dimension = dimension
         self.index = None
         self.conn = None
+        self.index_to_id = []  # Maps FAISS index to DB row ID
+        self.faiss_index_path = db_path.replace('.db', '.faiss')
 
         # Initialize
-        self._init_faiss_index()
         self._init_database()
+        self._init_faiss_index()
+        self._load_existing_mappings()
 
         logger.info(f"VectorStore initialized (dimension: {dimension}, db: {db_path})")
 
     def _init_faiss_index(self):
         """Initialize FAISS index with cosine similarity"""
-        # Use Flat index with Inner Product (for cosine similarity with normalized vectors)
+        import os
+
+        # Try to load existing index from disk
+        if os.path.exists(self.faiss_index_path):
+            try:
+                self.index = faiss.read_index(self.faiss_index_path)
+                logger.info(f"Loaded existing FAISS index from {self.faiss_index_path} ({self.index.ntotal} vectors)")
+                return
+            except Exception as e:
+                logger.warning(f"Failed to load FAISS index from {self.faiss_index_path}: {e}")
+
+        # Create new index if loading failed or file doesn't exist
         self.index = faiss.IndexFlatIP(self.dimension)
-        logger.info("FAISS index initialized")
+        logger.info("Created new FAISS index")
 
     def _init_database(self):
         """Initialize SQLite database for metadata"""
@@ -75,6 +89,15 @@ class VectorStore:
         self.conn.commit()
         logger.info("SQLite database initialized")
 
+    def _load_existing_mappings(self):
+        """Load existing ID mappings from database"""
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT id FROM documents ORDER BY id')
+        rows = cursor.fetchall()
+        self.index_to_id = [row[0] for row in rows]
+        if self.index_to_id:
+            logger.info(f"Loaded {len(self.index_to_id)} existing ID mappings")
+
     def _generate_chunk_id(self, source_file: str, chunk_index: int) -> str:
         """Generate unique chunk ID"""
         content = f"{source_file}_{chunk_index}_{datetime.now().isoformat()}"
@@ -86,6 +109,14 @@ class VectorStore:
         # Avoid division by zero
         norms[norms == 0] = 1
         return vectors / norms
+
+    def _save_faiss_index(self):
+        """Save FAISS index to disk"""
+        try:
+            faiss.write_index(self.index, self.faiss_index_path)
+            logger.info(f"FAISS index saved to {self.faiss_index_path}")
+        except Exception as e:
+            logger.error(f"Failed to save FAISS index: {e}")
 
     def add_documents(self, chunks: List[Dict], embeddings: List[List[float]]) -> int:
         """
@@ -138,6 +169,10 @@ class VectorStore:
                     metadata.get('token_count', 0),
                     json.dumps(metadata)
                 ))
+
+                # Get the ID of inserted row and add to mapping
+                row_id = cursor.lastrowid
+                self.index_to_id.append(row_id)
                 added += 1
 
             except sqlite3.IntegrityError:
@@ -146,6 +181,10 @@ class VectorStore:
                 logger.error(f"Error adding document: {e}")
 
         self.conn.commit()
+
+        # Save FAISS index to disk
+        self._save_faiss_index()
+
         logger.info(f"Added {added} documents to index")
 
         return added
@@ -175,6 +214,10 @@ class VectorStore:
         # Search in FAISS
         distances, indices = self.index.search(query_vector, min(top_k * 2, self.index.ntotal))
 
+        logger.info(f"FAISS search returned {len(indices[0])} candidates")
+        logger.info(f"Distances: {distances[0][:5]}")  # Log first 5 distances
+        logger.info(f"Indices: {indices[0][:5]}")  # Log first 5 indices
+
         # Get metadata from SQLite
         results = []
         cursor = self.conn.cursor()
@@ -182,25 +225,37 @@ class VectorStore:
         for distance, idx in zip(distances[0], indices[0]):
             # FAISS returns -1 for invalid indices
             if idx == -1:
+                logger.info(f"Skipping invalid index: -1")
                 continue
 
             # Cosine similarity (since we normalized vectors)
             similarity = float(distance)
+            logger.info(f"Processing idx={idx}, similarity={similarity:.4f}, min_threshold={min_similarity}")
 
             # Filter by minimum similarity
             if similarity < min_similarity:
+                logger.info(f"Filtered out idx={idx} due to low similarity: {similarity:.4f} < {min_similarity}")
                 continue
 
-            # Get document metadata (idx is the row number in insertion order)
+            # Get DB row ID from mapping
+            if idx >= len(self.index_to_id):
+                logger.warning(f"Index {idx} out of range for index_to_id mapping (len={len(self.index_to_id)})")
+                continue
+
+            row_id = self.index_to_id[idx]
+            logger.info(f"Mapped FAISS idx={idx} to DB row_id={row_id}")
+
+            # Get document metadata by ID
             cursor.execute('''
                 SELECT chunk_id, source_file, file_type, chunk_text, chunk_index,
                        token_count, metadata, created_at
                 FROM documents
-                LIMIT 1 OFFSET ?
-            ''', (int(idx),))
+                WHERE id = ?
+            ''', (row_id,))
 
             row = cursor.fetchone()
             if not row:
+                logger.warning(f"No row found for ID {row_id}")
                 continue
 
             # Parse metadata
@@ -277,13 +332,26 @@ class VectorStore:
 
     def clear_index(self):
         """Clear entire index"""
+        import os
+
         # Reset FAISS index
-        self._init_faiss_index()
+        self.index = faiss.IndexFlatIP(self.dimension)
+
+        # Delete FAISS index file
+        if os.path.exists(self.faiss_index_path):
+            try:
+                os.remove(self.faiss_index_path)
+                logger.info(f"Deleted FAISS index file: {self.faiss_index_path}")
+            except Exception as e:
+                logger.error(f"Failed to delete FAISS index file: {e}")
 
         # Clear database
         cursor = self.conn.cursor()
         cursor.execute('DELETE FROM documents')
         self.conn.commit()
+
+        # Clear mapping
+        self.index_to_id = []
 
         logger.info("Index cleared")
 
