@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>RAG Comparison - Day 14</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='rag.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Navigation -->
+        <header>
+            <div class="header-left">
+                <h1>🔍 RAG Comparison</h1>
+                <p class="subtitle">Compare AI responses with and without document context</p>
+            </div>
+            <div class="header-right">
+                <nav class="header-nav">
+                    <a href="/" class="nav-link">💬 AI Agent</a>
+                    <a href="/indexing" class="nav-link">📚 Document Indexing</a>
+                    <a href="/rag" class="nav-link active">🔍 RAG Comparison</a>
+                </nav>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="rag-main">
+            <!-- Query Section -->
+            <section class="card query-section">
+                <h2>❓ Ask a Question</h2>
+
+                <div class="query-input-wrapper">
+                    <textarea
+                        id="question-input"
+                        placeholder="Ask a question about your indexed documents...&#10;Example: How to containerize a Python application with Docker?"
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <div class="query-options">
+                    <button class="btn-collapse" id="options-toggle">
+                        ⚙️ Options <span class="arrow">▶</span>
+                    </button>
+                    <div class="options-content" id="options-content">
+                        <div class="option-group">
+                            <label>Top chunks: <span id="top-k-value">5</span></label>
+                            <input type="range" id="top-k" min="1" max="10" value="5" step="1">
+                        </div>
+                        <div class="option-group">
+                            <label>Min similarity: <span id="min-sim-value">0.00</span></label>
+                            <input type="range" id="min-similarity" min="0" max="1" value="0.0" step="0.05">
+                        </div>
+                        <div class="option-group">
+                            <label>Temperature: <span id="temperature-value">0.7</span></label>
+                            <input type="range" id="temperature" min="0" max="2" value="0.7" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="query-actions">
+                    <button class="btn btn-primary" id="compare-btn">⚖️ Compare Responses</button>
+                    <button class="btn btn-secondary" id="with-rag-btn">📚 Query with RAG</button>
+                    <button class="btn btn-secondary" id="without-rag-btn">🤖 Query without RAG</button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <div class="results-grid" id="results-grid">
+                <!-- Empty state -->
+                <div class="empty-state-full">
+                    <div class="empty-icon">🔍</div>
+                    <h3>Ready to Compare</h3>
+                    <p>Ask a question to see how RAG affects the AI's response</p>
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="info-icon">🤖</div>
+                            <h4>Without RAG</h4>
+                            <p>LLM uses only its training knowledge</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">📚</div>
+                            <h4>With RAG</h4>
+                            <p>LLM uses your indexed documents as context</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='rag.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Document Indexing - Day 13</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='indexing.css') }}">
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Navigation -->
+        <header>
+            <div class="header-left">
+                <h1>📚 Document Indexing</h1>
+                <p class="subtitle">Semantic search with embeddings</p>
+            </div>
+            <div class="header-right">
+                <nav class="header-nav">
+                    <a href="/" class="nav-link">💬 AI Agent</a>
+                    <a href="/indexing" class="nav-link active">📚 Document Indexing</a>
+                    <a href="/rag" class="nav-link">🔍 RAG Comparison</a>
+                </nav>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="indexing-main">
+            <!-- Left Panel: Upload & Stats -->
+            <div class="left-panel">
+                <!-- Upload Section -->
+                <section class="card upload-section">
+                    <h2>📤 Upload Documents</h2>
+
+                    <div class="upload-zone" id="upload-zone">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Drag & drop files here</p>
+                        <p class="upload-subtext">or click to browse</p>
+                        <p class="upload-formats">Supported: .md, .txt, .py, .js, .json, .csv</p>
+                        <input type="file" id="file-input" multiple accept=".md,.txt,.py,.js,.json,.csv" hidden>
+                    </div>
+
+                    <div class="selected-files" id="selected-files"></div>
+
+                    <div class="upload-settings">
+                        <button class="btn-collapse" id="settings-toggle">
+                            🔧 Settings <span class="arrow">▶</span>
+                        </button>
+                        <div class="settings-content" id="settings-content">
+                            <div class="setting-group">
+                                <label>Chunk size: <span id="chunk-size-value">512</span> tokens</label>
+                                <input type="range" id="chunk-size" min="256" max="1024" value="512" step="64">
+                            </div>
+                            <div class="setting-group">
+                                <label>Overlap: <span id="overlap-value">50</span> tokens</label>
+                                <input type="range" id="overlap" min="0" max="100" value="50" step="10">
+                            </div>
+                            <div class="setting-group">
+                                <label>Model:</label>
+                                <select id="embedding-model">
+                                    <option value="text-embedding-3-small" selected>text-embedding-3-small</option>
+                                    <option value="text-embedding-3-large">text-embedding-3-large</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="upload-actions">
+                        <button class="btn btn-primary" id="index-btn" disabled>📊 Index Documents</button>
+                        <button class="btn btn-secondary" id="clear-files-btn" disabled>🗑️ Clear</button>
+                    </div>
+                </section>
+
+                <!-- Progress Section -->
+                <section class="card progress-section hidden" id="progress-section">
+                    <h3>🔄 Indexing Progress</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-info" id="progress-info">
+                        <p id="progress-text">Starting...</p>
+                        <p id="progress-percent">0%</p>
+                    </div>
+                </section>
+
+                <!-- Statistics Section -->
+                <section class="card stats-section">
+                    <h2>📊 Index Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-files">0</div>
+                            <div class="stat-label">Files</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-chunks">0</div>
+                            <div class="stat-label">Chunks</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-tokens">0</div>
+                            <div class="stat-label">Tokens</div>
+                        </div>
+                    </div>
+                    <div class="stats-details" id="stats-details"></div>
+                    <button class="btn btn-danger btn-small" id="clear-index-btn">🗑️ Clear Index</button>
+                </section>
+            </div>
+
+            <!-- Right Panel: Search -->
+            <div class="right-panel">
+                <section class="card search-section">
+                    <h2>🔍 Search Documents</h2>
+
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Enter your search query..." />
+                        <button class="btn btn-primary" id="search-btn">🔍 Search</button>
+                    </div>
+
+                    <div class="search-options">
+                        <button class="btn-collapse" id="search-options-toggle">
+                            Advanced Options <span class="arrow">▶</span>
+                        </button>
+                        <div class="options-content hidden" id="search-options-content">
+                            <div class="option-group">
+                                <label>Top results: <span id="top-k-value">5</span></label>
+                                <input type="range" id="top-k" min="1" max="20" value="5" step="1">
+                            </div>
+                            <div class="option-group">
+                                <label>Min similarity: <span id="min-sim-value">0.00</span></label>
+                                <input type="range" id="min-similarity" min="0" max="1" value="0.0" step="0.05">
+                            </div>
+                            <div class="option-group">
+                                <label>File type:</label>
+                                <select id="file-type-filter">
+                                    <option value="">All types</option>
+                                    <option value="markdown">Markdown</option>
+                                    <option value="python">Python</option>
+                                    <option value="javascript">JavaScript</option>
+                                    <option value="text">Text</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Search Results -->
+                <section class="card results-section">
+                    <div class="results-header" id="results-header">
+                        <h3>Search Results</h3>
+                    </div>
+                    <div class="results-container" id="results-container">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <p>Enter a search query to find relevant documents</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='indexing.js') }}"></script>
+</body>
+</html>
