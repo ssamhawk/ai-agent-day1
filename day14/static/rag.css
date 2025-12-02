@@ -22,13 +22,8 @@
     color: var(--text-primary);
 }
 
-.header-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.header-row + .header-row {
     margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
 }
 
 .index-info {
