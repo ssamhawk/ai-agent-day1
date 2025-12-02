@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Knowledge Base & RAG - Day 14</title>
+    <title>Knowledge Base & RAG - Day 15</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -80,11 +80,29 @@
                             <label>Temperature: <span id="temperature-value">0.7</span></label>
                             <input type="range" id="temperature" min="0" max="2" value="0.7" step="0.1">
                         </div>
+                        <div class="option-divider"></div>
+                        <div class="option-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enable-reranking">
+                                <span>🔄 Enable Reranking</span>
+                            </label>
+                        </div>
+                        <div class="reranking-options" id="reranking-options" style="display: none;">
+                            <div class="option-group">
+                                <label>Retrieve chunks: <span id="top-k-retrieve-value">20</span></label>
+                                <input type="range" id="top-k-retrieve" min="10" max="50" value="20" step="5">
+                            </div>
+                            <div class="option-group">
+                                <label>Final chunks: <span id="top-k-final-value">5</span></label>
+                                <input type="range" id="top-k-final" min="1" max="10" value="5" step="1">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="query-actions">
                     <button class="btn btn-primary" id="compare-btn">⚖️ Compare Responses</button>
+                    <button class="btn btn-primary" id="compare-reranking-btn">🔄 Compare Reranking</button>
                     <button class="btn btn-secondary" id="with-rag-btn">📚 With RAG</button>
                     <button class="btn btn-secondary" id="without-rag-btn">🤖 Without RAG</button>
                 </div>

@@ -8,6 +8,7 @@ let socket = null;
 const themeToggle = document.getElementById('theme-toggle');
 const questionInput = document.getElementById('question-input');
 const compareBtn = document.getElementById('compare-btn');
+const compareRerankingBtn = document.getElementById('compare-reranking-btn');
 const withRagBtn = document.getElementById('with-rag-btn');
 const withoutRagBtn = document.getElementById('without-rag-btn');
 const resultsGrid = document.getElementById('results-grid');
@@ -43,6 +44,14 @@ const chunkSizeSlider = document.getElementById('chunk-size');
 const chunkSizeValue = document.getElementById('chunk-size-value');
 const overlapSlider = document.getElementById('overlap');
 const overlapValue = document.getElementById('overlap-value');
+
+// Reranking controls
+const enableRerankingCheckbox = document.getElementById('enable-reranking');
+const rerankingOptions = document.getElementById('reranking-options');
+const topKRetrieveSlider = document.getElementById('top-k-retrieve');
+const topKRetrieveValue = document.getElementById('top-k-retrieve-value');
+const topKFinalSlider = document.getElementById('top-k-final');
+const topKFinalValue = document.getElementById('top-k-final-value');
 
 // Theme toggle
 const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -81,12 +90,26 @@ temperatureSlider.addEventListener('input', (e) => {
     temperatureValue.textContent = parseFloat(e.target.value).toFixed(1);
 });
 
+// Reranking controls
+enableRerankingCheckbox.addEventListener('change', (e) => {
+    rerankingOptions.style.display = e.target.checked ? 'block' : 'none';
+});
+
+topKRetrieveSlider.addEventListener('input', (e) => {
+    topKRetrieveValue.textContent = e.target.value;
+});
+
+topKFinalSlider.addEventListener('input', (e) => {
+    topKFinalValue.textContent = e.target.value;
+});
+
 // Initialize slider values
 minSimSlider.value = 0.0;
 minSimValue.textContent = '0.00';
 
 // Button handlers
 compareBtn.addEventListener('click', () => performQuery('compare'));
+compareRerankingBtn.addEventListener('click', () => performQuery('compare_reranking'));
 withRagBtn.addEventListener('click', () => performQuery('with_rag'));
 withoutRagBtn.addEventListener('click', () => performQuery('without_rag'));
 
@@ -110,15 +133,19 @@ async function performQuery(mode) {
     const topK = parseInt(topKSlider.value);
     const minSimilarity = parseFloat(minSimSlider.value);
     const temperature = parseFloat(temperatureSlider.value);
+    const enableReranking = enableRerankingCheckbox.checked;
+    const topKRetrieve = parseInt(topKRetrieveSlider.value);
+    const topKFinal = parseInt(topKFinalSlider.value);
 
     // Disable buttons
     compareBtn.disabled = true;
+    compareRerankingBtn.disabled = true;
     withRagBtn.disabled = true;
     withoutRagBtn.disabled = true;
 
     // Show loading state
-    if (mode === 'compare') {
-        showLoadingState('both');
+    if (mode === 'compare' || mode === 'compare_reranking') {
+        showLoadingState('both', mode === 'compare_reranking');
     } else if (mode === 'with_rag') {
         showLoadingState('with_rag');
     } else {
@@ -126,18 +153,27 @@ async function performQuery(mode) {
     }
 
     try {
+        const requestBody = {
+            question,
+            mode,
+            top_k: topK,
+            min_similarity: minSimilarity,
+            temperature,
+            enable_reranking: enableReranking
+        };
+
+        // Add reranking parameters if enabled or if mode is compare_reranking
+        if (enableReranking || mode === 'compare_reranking') {
+            requestBody.top_k_retrieve = topKRetrieve;
+            requestBody.top_k_final = topKFinal;
+        }
+
         const response = await fetch('/api/rag/query', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                question,
-                mode,
-                top_k: topK,
-                min_similarity: minSimilarity,
-                temperature
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const result = await response.json();
@@ -155,28 +191,46 @@ async function performQuery(mode) {
     } finally {
         // Re-enable buttons
         compareBtn.disabled = false;
+        compareRerankingBtn.disabled = false;
         withRagBtn.disabled = false;
         withoutRagBtn.disabled = false;
     }
 }
 
 // Show loading state
-function showLoadingState(mode) {
+function showLoadingState(mode, isReranking = false) {
     if (mode === 'both') {
-        resultsGrid.innerHTML = `
-            <div class="response-card">
-                <div class="loading-state">
-                    <div class="loading-spinner">⏳</div>
-                    <div class="loading-text">Querying without RAG...</div>
+        if (isReranking) {
+            resultsGrid.innerHTML = `
+                <div class="response-card">
+                    <div class="loading-state">
+                        <div class="loading-spinner">⏳</div>
+                        <div class="loading-text">Querying without reranking...</div>
+                    </div>
                 </div>
-            </div>
-            <div class="response-card">
-                <div class="loading-state">
-                    <div class="loading-spinner">⏳</div>
-                    <div class="loading-text">Querying with RAG...</div>
+                <div class="response-card">
+                    <div class="loading-state">
+                        <div class="loading-spinner">⏳</div>
+                        <div class="loading-text">Querying with reranking...</div>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            resultsGrid.innerHTML = `
+                <div class="response-card">
+                    <div class="loading-state">
+                        <div class="loading-spinner">⏳</div>
+                        <div class="loading-text">Querying without RAG...</div>
+                    </div>
+                </div>
+                <div class="response-card">
+                    <div class="loading-state">
+                        <div class="loading-spinner">⏳</div>
+                        <div class="loading-text">Querying with RAG...</div>
+                    </div>
+                </div>
+            `;
+        }
         resultsGrid.classList.remove('single-column');
     } else {
         resultsGrid.innerHTML = `
@@ -195,6 +249,8 @@ function showLoadingState(mode) {
 function displayResults(data, mode) {
     if (mode === 'compare') {
         displayComparisonResults(data);
+    } else if (mode === 'compare_reranking') {
+        displayRerankingComparisonResults(data);
     } else if (mode === 'with_rag') {
         displaySingleResult(data.with_rag, 'with_rag');
     } else {
@@ -212,6 +268,16 @@ function displayComparisonResults(data) {
     resultsGrid.innerHTML = withoutRagHtml + withRagHtml;
 }
 
+// Display reranking comparison results (without vs with reranking)
+function displayRerankingComparisonResults(data) {
+    resultsGrid.classList.remove('single-column');
+
+    const withoutRerankingHtml = buildResponseCard(data.without_reranking, 'without_reranking');
+    const withRerankingHtml = buildResponseCard(data.with_reranking, 'with_reranking');
+
+    resultsGrid.innerHTML = withoutRerankingHtml + withRerankingHtml;
+}
+
 // Display single result
 function displaySingleResult(responseData, mode) {
     resultsGrid.classList.add('single-column');
@@ -220,28 +286,68 @@ function displaySingleResult(responseData, mode) {
 
 // Build response card HTML
 function buildResponseCard(responseData, mode) {
-    const isWithRag = mode === 'with_rag';
-    const icon = isWithRag ? '📚' : '🤖';
-    const title = isWithRag ? 'With RAG' : 'Without RAG';
-    const badgeClass = isWithRag ? 'badge-with-rag' : 'badge-without-rag';
+    const isWithRag = mode === 'with_rag' || mode === 'without_reranking' || mode === 'with_reranking';
+    const isWithReranking = mode === 'with_reranking';
+    const isWithoutReranking = mode === 'without_reranking';
+
+    let icon, title, badgeClass;
+
+    if (isWithReranking) {
+        icon = '🔄';
+        title = 'With Reranking';
+        badgeClass = 'badge-with-reranking';
+    } else if (isWithoutReranking) {
+        icon = '📚';
+        title = 'Without Reranking';
+        badgeClass = 'badge-without-reranking';
+    } else if (isWithRag) {
+        icon = '📚';
+        title = 'With RAG';
+        badgeClass = 'badge-with-rag';
+    } else {
+        icon = '🤖';
+        title = 'Without RAG';
+        badgeClass = 'badge-without-rag';
+    }
 
     let chunksHtml = '';
     if (isWithRag && responseData.chunks_used && responseData.chunks_used.length > 0) {
+        const hasRerankScores = responseData.chunks_used.some(chunk => chunk.rerank_score !== undefined);
+
         chunksHtml = `
             <div class="chunks-section">
                 <div class="chunks-header">
                     <div class="chunks-title">📄 Retrieved Chunks (${responseData.chunks_used.length})</div>
                 </div>
                 <div class="chunks-list">
-                    ${responseData.chunks_used.map(chunk => {
+                    ${responseData.chunks_used.map((chunk, index) => {
                         const similarity = (chunk.similarity * 100).toFixed(1);
                         const similarityClass = chunk.similarity >= 0.85 ? 'similarity-high' :
                                                chunk.similarity >= 0.70 ? 'similarity-medium' : 'similarity-low';
+
+                        let scoreHtml = `<div class="chunk-similarity ${similarityClass}">${similarity}%</div>`;
+
+                        // Show rerank score if available
+                        if (hasRerankScores && chunk.rerank_score !== undefined) {
+                            const rerankScore = chunk.rerank_score.toFixed(3);
+                            const rankChange = chunk.rank_change || 0;
+                            const rankChangeIcon = rankChange > 0 ? '⬆️' : rankChange < 0 ? '⬇️' : '➡️';
+                            const rankChangeClass = rankChange > 0 ? 'rank-up' : rankChange < 0 ? 'rank-down' : 'rank-same';
+
+                            scoreHtml = `
+                                <div class="chunk-scores">
+                                    <div class="chunk-similarity ${similarityClass}" title="Embedding Similarity">Sim: ${similarity}%</div>
+                                    <div class="chunk-rerank" title="Rerank Score">Rerank: ${rerankScore}</div>
+                                    <div class="chunk-rank-change ${rankChangeClass}" title="Rank Change">${rankChangeIcon} ${rankChange > 0 ? '+' : ''}${rankChange}</div>
+                                </div>
+                            `;
+                        }
+
                         return `
                             <div class="chunk-item">
                                 <div class="chunk-header">
                                     <div class="chunk-source">${escapeHtml(chunk.source_file)}</div>
-                                    <div class="chunk-similarity ${similarityClass}">${similarity}%</div>
+                                    ${scoreHtml}
                                 </div>
                                 <div class="chunk-text">${escapeHtml(chunk.text.substring(0, 200))}${chunk.text.length > 200 ? '...' : ''}</div>
                             </div>

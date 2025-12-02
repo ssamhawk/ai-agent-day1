@@ -2,10 +2,15 @@
 
 /* Compact Header */
 .compact-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     background: var(--bg-light);
     border-bottom: 1px solid var(--border-color);
     padding: 16px 48px;
     box-shadow: var(--shadow-subtle);
+    z-index: 100;
 }
 
 .header-row {
@@ -24,6 +29,10 @@
 
 /* Stats Bar */
 .stats-bar {
+    position: fixed;
+    top: 65px;
+    left: 0;
+    right: 0;
     background: var(--bg-light);
     border-bottom: 1px solid var(--border-color);
     padding: 12px 48px;
@@ -31,6 +40,7 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: var(--shadow-subtle);
+    z-index: 99;
 }
 
 .index-info {
@@ -111,10 +121,10 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    padding: 24px 48px;
+    padding: 24px 48px 48px 48px;
+    padding-top: 140px;
     max-width: 1600px;
     margin: 0 auto;
-    min-height: calc(100vh - 150px);
 }
 
 /* Query Section */
@@ -169,7 +179,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
-    min-height: 500px;
 }
 
 .results-grid.single-column {
@@ -298,8 +307,6 @@
     line-height: 1.6;
     color: var(--text-primary);
     white-space: pre-wrap;
-    max-height: 400px;
-    overflow-y: auto;
 }
 
 /* Metadata */
@@ -349,8 +356,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 300px;
-    overflow-y: auto;
 }
 
 .chunk-item {
@@ -384,8 +389,6 @@
     font-size: 0.85em;
     color: var(--text-secondary);
     line-height: 1.5;
-    max-height: 100px;
-    overflow-y: auto;
     white-space: pre-wrap;
 }
 
@@ -789,4 +792,104 @@
 .stats-file-info {
     color: var(--text-secondary);
     font-size: 0.85em;
+}
+
+/* ============================================
+   DAY 15: RERANKING STYLES
+   ============================================ */
+
+/* Reranking Options Section */
+.option-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 16px 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.reranking-options {
+    margin-left: 24px;
+    padding-top: 12px;
+}
+
+/* Reranking Badges */
+.badge-with-reranking {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.badge-without-reranking {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+/* Chunk Scores Display */
+.chunk-scores {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.chunk-rerank {
+    font-size: 0.85em;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.chunk-rank-change {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.chunk-rank-change.rank-up {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.chunk-rank-change.rank-down {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.chunk-rank-change.rank-same {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+}
+
+/* FIX: Enable page scroll and checkbox visibility */
+body {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+    -webkit-appearance: checkbox !important;
+    -moz-appearance: checkbox !important;
+    appearance: checkbox !important;
+    display: inline-block !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    vertical-align: middle;
 }
