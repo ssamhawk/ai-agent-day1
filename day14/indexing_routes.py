@@ -47,11 +47,6 @@ def register_indexing_routes(app, socketio, indexer, vector_store, csrf):
         csrf: CSRFProtect instance
     """
 
-    @app.route('/indexing')
-    def indexing_page():
-        """Render document indexing page"""
-        return render_template('indexing.html')
-
     @app.route('/api/indexing/upload', methods=['POST'])
     @csrf.exempt
     def upload_documents():
