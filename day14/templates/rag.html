@@ -14,34 +14,36 @@
 </head>
 <body>
     <div class="container">
-        <!-- Compact Header with Index Info -->
+        <!-- Compact Header -->
         <header class="compact-header">
             <div class="header-row">
                 <div class="header-left">
                     <h1>📚 Knowledge Base & RAG</h1>
-                    <div class="index-info">
-                        <span class="index-stat">
-                            <span class="stat-icon">📄</span>
-                            <span id="header-files">0</span> files
-                        </span>
-                        <span class="index-stat">
-                            <span class="stat-icon">📦</span>
-                            <span id="header-chunks">0</span> chunks
-                        </span>
-                        <span class="index-stat">
-                            <span class="stat-icon">🔤</span>
-                            <span id="header-tokens">0</span> tokens
-                        </span>
-                    </div>
                 </div>
                 <div class="header-right">
                     <nav class="header-nav">
                         <a href="/" class="nav-link">💬 AI Agent</a>
                         <a href="/rag" class="nav-link active">📚 Knowledge Base</a>
                     </nav>
-                    <button class="btn-manage" id="manage-docs-btn">📤 Manage Documents</button>
                     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
                 </div>
+            </div>
+            <div class="header-bottom">
+                <div class="index-info">
+                    <span class="index-stat">
+                        <span class="stat-icon">📄</span>
+                        <span id="header-files">0</span> files
+                    </span>
+                    <span class="index-stat">
+                        <span class="stat-icon">📦</span>
+                        <span id="header-chunks">0</span> chunks
+                    </span>
+                    <span class="index-stat">
+                        <span class="stat-icon">🔤</span>
+                        <span id="header-tokens">0</span> tokens
+                    </span>
+                </div>
+                <button class="btn-manage" id="manage-docs-btn">📤 Manage Documents</button>
             </div>
         </header>
 
