@@ -1,5 +1,67 @@
 /* RAG Comparison Styles */
 
+/* Compact Header */
+.compact-header {
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 48px;
+    box-shadow: var(--shadow-subtle);
+}
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.compact-header h1 {
+    font-size: 1.5em;
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+}
+
+.index-info {
+    display: flex;
+    gap: 24px;
+    margin-top: 4px;
+}
+
+.index-stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.stat-icon {
+    font-size: 1.1em;
+}
+
+.index-stat span:not(.stat-icon) {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.btn-manage {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9em;
+}
+
+.btn-manage:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
 .rag-main {
     display: flex;
     flex-direction: column;
@@ -388,4 +450,302 @@
 .chunks-list::-webkit-scrollbar-thumb:hover,
 .chunk-text::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--bg-light);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5em;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+/* Upload Zone in Modal */
+.upload-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 16px;
+}
+
+.upload-zone:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-secondary);
+}
+
+.upload-zone.dragging {
+    border-color: var(--primary-color);
+    background: var(--bg-secondary);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 3em;
+    margin-bottom: 12px;
+}
+
+.upload-text {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.upload-subtext {
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.upload-formats {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+}
+
+/* Selected Files */
+.selected-files {
+    margin-bottom: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-icon {
+    font-size: 1.2em;
+}
+
+.file-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.file-size {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
+
+.file-remove {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.file-remove:hover {
+    background: var(--border-color);
+    color: #EF4444;
+}
+
+/* Settings in Modal */
+.upload-settings {
+    margin-bottom: 16px;
+}
+
+.settings-content {
+    margin-top: 0;
+    padding: 0;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.settings-content.expanded {
+    margin-top: 12px;
+    padding: 16px;
+    max-height: 300px;
+}
+
+.setting-group {
+    margin-bottom: 16px;
+}
+
+.setting-group:last-child {
+    margin-bottom: 0;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9em;
+}
+
+.setting-group input[type="range"] {
+    width: 100%;
+    margin-top: 4px;
+}
+
+/* Upload Actions */
+.upload-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+/* Progress Section in Modal */
+.progress-section {
+    background: var(--bg-secondary);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.progress-section.hidden {
+    display: none;
+}
+
+.progress-section h3 {
+    font-size: 1em;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+}
+
+#progress-text {
+    color: var(--text-secondary);
+}
+
+#progress-percent {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Indexed Files Section */
+.indexed-files-section h3 {
+    font-size: 1.1em;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.stats-details {
+    background: var(--bg-secondary);
+    padding: 12px;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.stats-file {
+    padding: 8px;
+    margin-bottom: 6px;
+    background: var(--bg-light);
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.stats-file-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.stats-file-info {
+    color: var(--text-secondary);
+    font-size: 0.85em;
 }

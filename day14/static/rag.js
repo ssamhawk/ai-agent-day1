@@ -1,6 +1,10 @@
 // RAG Comparison JavaScript
 
-// DOM Elements
+// State
+let selectedFiles = [];
+let socket = null;
+
+// DOM Elements - Query
 const themeToggle = document.getElementById('theme-toggle');
 const questionInput = document.getElementById('question-input');
 const compareBtn = document.getElementById('compare-btn');
@@ -10,6 +14,24 @@ const resultsGrid = document.getElementById('results-grid');
 const optionsToggle = document.getElementById('options-toggle');
 const optionsContent = document.getElementById('options-content');
 
+// DOM Elements - Modal
+const manageDocsBtn = document.getElementById('manage-docs-btn');
+const docsModal = document.getElementById('docs-modal');
+const closeModal = document.getElementById('close-modal');
+const uploadZone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+const selectedFilesContainer = document.getElementById('selected-files');
+const indexBtn = document.getElementById('index-btn');
+const clearFilesBtn = document.getElementById('clear-files-btn');
+const clearIndexBtn = document.getElementById('clear-index-btn');
+const progressSection = document.getElementById('progress-section');
+const progressFill = document.getElementById('progress-fill');
+const progressText = document.getElementById('progress-text');
+const progressPercent = document.getElementById('progress-percent');
+const settingsToggle = document.getElementById('settings-toggle');
+const settingsContent = document.getElementById('settings-content');
+const statsDetails = document.getElementById('stats-details');
+
 // Options sliders
 const topKSlider = document.getElementById('top-k');
 const topKValue = document.getElementById('top-k-value');
@@ -17,6 +39,10 @@ const minSimSlider = document.getElementById('min-similarity');
 const minSimValue = document.getElementById('min-sim-value');
 const temperatureSlider = document.getElementById('temperature');
 const temperatureValue = document.getElementById('temperature-value');
+const chunkSizeSlider = document.getElementById('chunk-size');
+const chunkSizeValue = document.getElementById('chunk-size-value');
+const overlapSlider = document.getElementById('overlap');
+const overlapValue = document.getElementById('overlap-value');
 
 // Theme toggle
 const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -318,3 +344,299 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ===== DOCUMENT MANAGEMENT & INDEXING =====
+
+// Initialize Socket.IO
+function initSocket() {
+    socket = io();
+
+    socket.on('connect', () => {
+        console.log('Connected to server');
+    });
+
+    socket.on('indexing_progress', (data) => {
+        updateIndexingProgress(data);
+    });
+
+    socket.on('indexing_complete', (data) => {
+        handleIndexingComplete(data);
+    });
+}
+
+// Modal Management
+manageDocsBtn.addEventListener('click', () => {
+    docsModal.classList.remove('hidden');
+    loadModalStats();
+});
+
+closeModal.addEventListener('click', () => {
+    docsModal.classList.add('hidden');
+});
+
+// Close modal on backdrop click
+docsModal.addEventListener('click', (e) => {
+    if (e.target === docsModal) {
+        docsModal.classList.add('hidden');
+    }
+});
+
+// Upload Zone Events
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragging');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragging');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragging');
+    handleFiles(e.dataTransfer.files);
+});
+
+fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+});
+
+// Handle file selection
+function handleFiles(files) {
+    const newFiles = Array.from(files).filter(file => {
+        // Check if already selected
+        if (selectedFiles.find(f => f.name === file.name)) {
+            return false;
+        }
+        // Check file type
+        const validTypes = ['md', 'txt', 'py', 'js', 'json', 'csv'];
+        const ext = file.name.split('.').pop().toLowerCase();
+        return validTypes.includes(ext);
+    });
+
+    selectedFiles.push(...newFiles);
+    renderSelectedFiles();
+    updateUploadButtons();
+}
+
+// Render selected files
+function renderSelectedFiles() {
+    if (selectedFiles.length === 0) {
+        selectedFilesContainer.innerHTML = '';
+        return;
+    }
+
+    selectedFilesContainer.innerHTML = selectedFiles.map((file, index) => {
+        const icon = getFileIcon(file.name);
+        const size = formatFileSize(file.size);
+
+        return `
+            <div class="file-item">
+                <div class="file-info">
+                    <span class="file-icon">${icon}</span>
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-size">${size}</span>
+                </div>
+                <button class="file-remove" onclick="removeFile(${index})">✕</button>
+            </div>
+        `;
+    }).join('');
+}
+
+// Remove file from selection
+window.removeFile = function(index) {
+    selectedFiles.splice(index, 1);
+    renderSelectedFiles();
+    updateUploadButtons();
+}
+
+// Get file icon
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const icons = {
+        'md': '📄',
+        'txt': '📝',
+        'py': '🐍',
+        'js': '📜',
+        'json': '📋',
+        'csv': '📊'
+    };
+    return icons[ext] || '📄';
+}
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// Update upload buttons state
+function updateUploadButtons() {
+    const hasFiles = selectedFiles.length > 0;
+    indexBtn.disabled = !hasFiles;
+    clearFilesBtn.disabled = !hasFiles;
+}
+
+// Clear selected files
+clearFilesBtn.addEventListener('click', () => {
+    selectedFiles = [];
+    fileInput.value = '';
+    renderSelectedFiles();
+    updateUploadButtons();
+});
+
+// Settings toggles
+settingsToggle.addEventListener('click', () => {
+    settingsToggle.classList.toggle('expanded');
+    settingsContent.classList.toggle('expanded');
+});
+
+// Chunk size and overlap sliders
+chunkSizeSlider.addEventListener('input', (e) => {
+    chunkSizeValue.textContent = e.target.value;
+});
+
+overlapSlider.addEventListener('input', (e) => {
+    overlapValue.textContent = e.target.value;
+});
+
+// Index documents
+indexBtn.addEventListener('click', async () => {
+    if (selectedFiles.length === 0) return;
+
+    const formData = new FormData();
+    selectedFiles.forEach(file => {
+        formData.append('files[]', file);
+    });
+
+    // Add chunk settings
+    const chunkSize = parseInt(chunkSizeSlider.value);
+    const overlap = parseInt(overlapSlider.value);
+    formData.append('chunk_size', chunkSize);
+    formData.append('overlap', overlap);
+
+    // Show progress
+    progressSection.classList.remove('hidden');
+    indexBtn.disabled = true;
+    clearFilesBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/indexing/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showNotification('success', `Indexed ${result.total_chunks} chunks from ${result.processed.length} files`);
+            // Clear selected files
+            selectedFiles = [];
+            fileInput.value = '';
+            renderSelectedFiles();
+            updateUploadButtons();
+            // Refresh stats
+            loadHeaderStats();
+            loadModalStats();
+        } else {
+            showNotification('error', result.error || 'Failed to index documents');
+        }
+    } catch (error) {
+        console.error('Error indexing documents:', error);
+        showNotification('error', 'Failed to index documents');
+    } finally {
+        progressSection.classList.add('hidden');
+        indexBtn.disabled = false;
+        clearFilesBtn.disabled = false;
+    }
+});
+
+// Update indexing progress
+function updateIndexingProgress(data) {
+    const percent = Math.round(data.progress);
+    progressFill.style.width = percent + '%';
+    progressPercent.textContent = percent + '%';
+
+    if (data.step === 'reading') {
+        progressText.textContent = `Reading ${data.filename}...`;
+    } else if (data.step === 'embedding') {
+        progressText.textContent = `Generating embeddings for ${data.filename} (${data.chunks} chunks)...`;
+    } else if (data.step === 'complete') {
+        progressText.textContent = `Completed ${data.filename} (${data.chunks} chunks)`;
+    }
+}
+
+// Handle indexing complete
+function handleIndexingComplete(data) {
+    progressSection.classList.add('hidden');
+    loadHeaderStats();
+    loadModalStats();
+}
+
+// Load header statistics
+async function loadHeaderStats() {
+    try {
+        const response = await fetch('/api/indexing/stats');
+        const stats = await response.json();
+
+        document.getElementById('header-files').textContent = stats.total_files;
+        document.getElementById('header-chunks').textContent = stats.total_chunks;
+        document.getElementById('header-tokens').textContent = stats.total_tokens.toLocaleString();
+    } catch (error) {
+        console.error('Error loading header statistics:', error);
+    }
+}
+
+// Load modal statistics (indexed files list)
+async function loadModalStats() {
+    try {
+        const response = await fetch('/api/indexing/stats');
+        const stats = await response.json();
+
+        // Display file details in modal
+        if (stats.files && stats.files.length > 0) {
+            statsDetails.innerHTML = stats.files.map(file => `
+                <div class="stats-file">
+                    <div class="stats-file-name">${getFileIcon(file.name)} ${file.name}</div>
+                    <div class="stats-file-info">${file.chunks} chunks • ${file.tokens.toLocaleString()} tokens</div>
+                </div>
+            `).join('');
+        } else {
+            statsDetails.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 16px;">No indexed files</div>';
+        }
+    } catch (error) {
+        console.error('Error loading modal statistics:', error);
+    }
+}
+
+// Clear entire index
+clearIndexBtn.addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to clear the entire index?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/indexing/clear', {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            showNotification('success', 'Index cleared');
+            loadHeaderStats();
+            loadModalStats();
+        } else {
+            showNotification('error', 'Failed to clear index');
+        }
+    } catch (error) {
+        console.error('Error clearing index:', error);
+        showNotification('error', 'Failed to clear index');
+    }
+});
+
+// Initialize on page load
+initSocket();
+loadHeaderStats();
+updateUploadButtons();

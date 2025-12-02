@@ -4,46 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>RAG Comparison - Day 14</title>
+    <title>Knowledge Base & RAG - Day 14</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='rag.css') }}">
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Header with Navigation -->
-        <header>
-            <div class="header-left">
-                <h1>🔍 RAG Comparison</h1>
-                <p class="subtitle">Compare AI responses with and without document context</p>
-            </div>
-            <div class="header-right">
-                <nav class="header-nav">
-                    <a href="/" class="nav-link">💬 AI Agent</a>
-                    <a href="/indexing" class="nav-link">📚 Document Indexing</a>
-                    <a href="/rag" class="nav-link active">🔍 RAG Comparison</a>
-                </nav>
-                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <!-- Compact Header with Index Info -->
+        <header class="compact-header">
+            <div class="header-row">
+                <div class="header-left">
+                    <h1>📚 Knowledge Base & RAG</h1>
+                    <div class="index-info">
+                        <span class="index-stat">
+                            <span class="stat-icon">📄</span>
+                            <span id="header-files">0</span> files
+                        </span>
+                        <span class="index-stat">
+                            <span class="stat-icon">📦</span>
+                            <span id="header-chunks">0</span> chunks
+                        </span>
+                        <span class="index-stat">
+                            <span class="stat-icon">🔤</span>
+                            <span id="header-tokens">0</span> tokens
+                        </span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <nav class="header-nav">
+                        <a href="/" class="nav-link">💬 AI Agent</a>
+                        <a href="/rag" class="nav-link active">📚 Knowledge Base</a>
+                    </nav>
+                    <button class="btn-manage" id="manage-docs-btn">📤 Manage Documents</button>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+                </div>
             </div>
         </header>
 
         <!-- Main Content -->
         <main class="rag-main">
             <!-- Query Section -->
-            <section class="card query-section">
-                <h2>❓ Ask a Question</h2>
+            <section class="query-section">
+                <h2>🔍 Ask Your Documents</h2>
 
                 <div class="query-input-wrapper">
                     <textarea
                         id="question-input"
                         placeholder="Ask a question about your indexed documents...&#10;Example: How to containerize a Python application with Docker?"
-                        rows="3"
+                        rows="4"
                     ></textarea>
                 </div>
 
-                <div class="query-options">
+                <div class="query-controls">
                     <button class="btn-collapse" id="options-toggle">
                         ⚙️ Options <span class="arrow">▶</span>
                     </button>
@@ -65,8 +81,8 @@
 
                 <div class="query-actions">
                     <button class="btn btn-primary" id="compare-btn">⚖️ Compare Responses</button>
-                    <button class="btn btn-secondary" id="with-rag-btn">📚 Query with RAG</button>
-                    <button class="btn btn-secondary" id="without-rag-btn">🤖 Query without RAG</button>
+                    <button class="btn btn-secondary" id="with-rag-btn">📚 With RAG</button>
+                    <button class="btn btn-secondary" id="without-rag-btn">🤖 Without RAG</button>
                 </div>
             </section>
 
@@ -75,8 +91,8 @@
                 <!-- Empty state -->
                 <div class="empty-state-full">
                     <div class="empty-icon">🔍</div>
-                    <h3>Ready to Compare</h3>
-                    <p>Ask a question to see how RAG affects the AI's response</p>
+                    <h3>Ready to Query</h3>
+                    <p>Ask a question to see how RAG enhances AI responses</p>
                     <div class="info-cards">
                         <div class="info-card">
                             <div class="info-icon">🤖</div>
@@ -92,6 +108,68 @@
                 </div>
             </div>
         </main>
+
+        <!-- Document Management Modal -->
+        <div class="modal hidden" id="docs-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📚 Manage Documents</h2>
+                    <button class="modal-close" id="close-modal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Upload Zone -->
+                    <div class="upload-zone" id="upload-zone">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Drag & drop files here</p>
+                        <p class="upload-subtext">or click to browse</p>
+                        <p class="upload-formats">Supported: .md, .txt, .py, .js, .json, .csv</p>
+                        <input type="file" id="file-input" multiple accept=".md,.txt,.py,.js,.json,.csv" hidden>
+                    </div>
+
+                    <div class="selected-files" id="selected-files"></div>
+
+                    <div class="upload-settings">
+                        <button class="btn-collapse" id="settings-toggle">
+                            🔧 Settings <span class="arrow">▶</span>
+                        </button>
+                        <div class="settings-content" id="settings-content">
+                            <div class="setting-group">
+                                <label>Chunk size: <span id="chunk-size-value">512</span> tokens</label>
+                                <input type="range" id="chunk-size" min="256" max="1024" value="512" step="64">
+                            </div>
+                            <div class="setting-group">
+                                <label>Overlap: <span id="overlap-value">50</span> tokens</label>
+                                <input type="range" id="overlap" min="0" max="100" value="50" step="10">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="upload-actions">
+                        <button class="btn btn-primary" id="index-btn" disabled>📊 Index Documents</button>
+                        <button class="btn btn-secondary" id="clear-files-btn" disabled>🗑️ Clear</button>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div class="progress-section hidden" id="progress-section">
+                        <h3>🔄 Indexing Progress</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-info" id="progress-info">
+                            <p id="progress-text">Starting...</p>
+                            <p id="progress-percent">0%</p>
+                        </div>
+                    </div>
+
+                    <!-- Indexed Files List -->
+                    <div class="indexed-files-section">
+                        <h3>📄 Indexed Files</h3>
+                        <div class="stats-details" id="stats-details"></div>
+                        <button class="btn btn-danger btn-small" id="clear-index-btn">🗑️ Clear All Index</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='rag.js') }}"></script>
