@@ -165,8 +165,7 @@ if __name__ == '__main__':
     logger.info(f"Day 14 - First RAG Query running on http://{host}:{port}")
     print(f"Day 14 - First RAG Query running on http://{host}:{port}")
     print(f"  • Voice Agent: http://{host}:{port}/")
-    print(f"  • Document Indexing: http://{host}:{port}/indexing")
-    print(f"  • RAG Comparison: http://{host}:{port}/rag")
+    print(f"  • Knowledge Base: http://{host}:{port}/rag")
 
     # Run with SocketIO support
     socketio.run(app, debug=debug_mode, host=host, port=port, allow_unsafe_werkzeug=True)
