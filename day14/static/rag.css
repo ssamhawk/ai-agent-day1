@@ -22,8 +22,15 @@
     color: var(--text-primary);
 }
 
-.header-row + .header-row {
-    margin-top: 16px;
+/* Stats Bar */
+.stats-bar {
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-subtle);
 }
 
 .index-info {
@@ -107,7 +114,7 @@
     padding: 24px 48px;
     max-width: 1600px;
     margin: 0 auto;
-    height: calc(100vh - 100px); /* Full viewport height minus header */
+    height: calc(100vh - 150px); /* Full viewport height minus header and stats bar */
     overflow-y: auto;
 }
 
