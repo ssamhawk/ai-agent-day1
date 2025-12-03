@@ -108,23 +108,30 @@ class CitationManager:
         Returns:
             Prompt string that requires citations
         """
-        prompt = f"""You are a helpful assistant that answers questions based on provided context.
+        prompt = f"""You are a helpful assistant that MUST cite sources in your answers.
 
-IMPORTANT RULES:
-1. You MUST cite your sources using the citation numbers provided: [1], [2], [3], etc.
-2. Every factual claim should include a citation to the source where you found that information
-3. Use inline citations like: "Docker containers can be stopped with docker stop [1]"
-4. If information comes from multiple sources, cite all of them: [1][2]
-5. Do NOT make up information not found in the provided context
-6. If you cannot answer based on the context, say so clearly
+CRITICAL CITATION RULES - FOLLOW EXACTLY:
+1. ALWAYS use [1], [2], [3] etc. to cite sources - this is MANDATORY
+2. EVERY sentence with factual information MUST have a citation
+3. Format: "Docker stop command [1] stops containers gracefully"
+4. Multiple sources: "Docker [1] and Kubernetes [2] use containers"
+5. NEVER write facts without citations - if no citation, don't write it
+6. Use ALL relevant sources - try to cite most of the {num_sources} sources provided
 
-Context with {num_sources} sources:
+EXAMPLE of CORRECT answer:
+Question: How to stop containers?
+Answer: Use docker stop command [1] to gracefully stop containers. For immediate termination, use docker kill [2].
+
+EXAMPLE of WRONG answer (NO CITATIONS - DO NOT DO THIS):
+Answer: Use docker stop command to stop containers.
+
+Context with {num_sources} sources (you MUST use [1], [2], [3] etc. in your answer):
 
 {context}
 
 Question: {question}
 
-Answer (remember to cite sources using [1], [2], etc.):"""
+Answer with citations [1], [2], [3] etc.:"""
 
         return prompt
 
@@ -146,9 +153,15 @@ Answer (remember to cite sources using [1], [2], etc.):"""
             Validation result dictionary
         """
         # Extract all citation numbers from response
-        citation_pattern = r'\[(\d+)\]'
+        # Use negative lookbehind/lookahead to avoid matching [[1]] twice
+        citation_pattern = r'(?<!\[)\[(\d+)\](?!\])'
         found_citations = set(re.findall(citation_pattern, response_text))
-        found_citations = {int(c) for c in found_citations}
+        # Filter out [0] and very large numbers (max 1000)
+        MAX_CITATION_NUMBER = 1000
+        found_citations = {
+            int(c) for c in found_citations
+            if c.isdigit() and 0 < int(c) <= MAX_CITATION_NUMBER
+        }
 
         expected_citations = set(range(1, num_sources + 1))
 

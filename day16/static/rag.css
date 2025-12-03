@@ -893,3 +893,136 @@ body {
     margin: 0 !important;
     vertical-align: middle;
 }
+
+/* Day 16: Sources Section Styling - Collapsible */
+.sources-section {
+    margin-top: 16px;
+    background: var(--bg-secondary);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.sources-header {
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.sources-header:hover {
+    background: var(--bg-hover);
+}
+
+.sources-icon {
+    font-size: 12px;
+    color: var(--primary-color);
+    transition: transform 0.2s ease;
+    display: inline-block;
+    width: 16px;
+}
+
+.sources-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.sources-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-left: auto;
+}
+
+.sources-content {
+    padding: 16px;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 1000px;
+    }
+}
+
+.sources-content pre {
+    margin: 0;
+    padding: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: transparent;
+    border: none;
+}
+
+/* Day 16: Citation Links with Tooltips */
+.citation-link {
+    display: inline-block;
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: help;
+    position: relative;
+    padding: 0 2px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.citation-link:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.citation-link::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    max-width: 300px;
+    width: max-content;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.citation-link:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Day 16: Invalid Citation Styling */
+.citation-invalid {
+    display: inline-block;
+    color: #dc3545;
+    font-weight: 600;
+    text-decoration: line-through;
+    cursor: not-allowed;
+    padding: 0 2px;
+}

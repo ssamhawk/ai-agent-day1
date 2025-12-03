@@ -368,7 +368,8 @@ function buildResponseCard(responseData, mode) {
                 <div class="response-badge ${badgeClass}">${title}</div>
             </div>
             <div class="response-content">
-                <div class="response-text">${escapeHtml(responseData.answer)}</div>
+                <div class="response-text">${enhanceCitationsWithTooltips(escapeHtml(responseData.answer), responseData.citation_map)}</div>
+                ${responseData.sources_section ? createCollapsibleSources(responseData.sources_section) : ''}
                 <div class="response-metadata">
                     <div class="metadata-item">
                         <span class="metadata-label">🔤 Tokens:</span>
@@ -389,6 +390,64 @@ function buildResponseCard(responseData, mode) {
             </div>
         </div>
     `;
+}
+
+// Day 16: Create collapsible sources section
+function createCollapsibleSources(sourcesText) {
+    const id = 'sources-' + Math.random().toString(36).substr(2, 9);
+    return `
+        <div class="sources-section">
+            <div class="sources-header" onclick="toggleSources('${id}')">
+                <span class="sources-icon" id="${id}-icon">▶</span>
+                <span class="sources-title">📚 SOURCES</span>
+                <span class="sources-hint">(click to expand)</span>
+            </div>
+            <div class="sources-content" id="${id}" style="display: none;">
+                <pre>${escapeHtml(sourcesText)}</pre>
+            </div>
+        </div>
+    `;
+}
+
+// Day 16: Toggle sources visibility
+function toggleSources(id) {
+    const content = document.getElementById(id);
+    const icon = document.getElementById(id + '-icon');
+
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.textContent = '▼';
+    } else {
+        content.style.display = 'none';
+        icon.textContent = '▶';
+    }
+}
+
+// Day 16: Enhance citations with tooltips
+function enhanceCitationsWithTooltips(htmlText, citationMap) {
+    if (!citationMap || typeof citationMap !== 'object') return htmlText;
+    if (!htmlText || typeof htmlText !== 'string') return htmlText || '';
+
+    // Replace [1], [2], [3] etc. with tooltip-enabled spans
+    return htmlText.replace(/\[(\d+)\]/g, (match, num) => {
+        const citation = citationMap[num];
+        if (!citation) {
+            // Mark invalid citations
+            return `<span class="citation-invalid" title="Invalid citation">${escapeHtml(match)}</span>`;
+        }
+
+        // Escape EACH component separately to prevent XSS
+        const sourceFile = escapeHtml(citation.source_file || 'unknown');
+        const chunkIndex = parseInt(citation.chunk_index) || 0;
+        const similarity = parseFloat(citation.similarity || 0);
+        const preview = escapeHtml((citation.text_preview || '').substring(0, 200));
+
+        const tooltip = `${sourceFile} (chunk ${chunkIndex})
+Relevance: ${(similarity * 100).toFixed(1)}%
+Preview: "${preview}"`;
+
+        return `<span class="citation-link" data-tooltip="${tooltip}">${escapeHtml(match)}</span>`;
+    });
 }
 
 // Escape HTML
