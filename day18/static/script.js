@@ -292,6 +292,7 @@ chatForm.addEventListener('submit', async (e) => {
         const pipelineMode = pipelineModeCheckbox.checked;
         const intelligentMode = intelligentModeCheckbox.checked;
         const imageGenMode = document.getElementById('image-gen-mode-checkbox').checked;
+        const styleProfile = styleProfileSelect && styleProfileSelect.value ? styleProfileSelect.value : null;
         const compressionEnabled = compressionCheckbox.checked;
         const threshold = compressionThreshold.value ? parseInt(compressionThreshold.value) : 10;
         const maxTokens = maxTokensInput.value ? parseInt(maxTokensInput.value) : null;
@@ -331,6 +332,7 @@ chatForm.addEventListener('submit', async (e) => {
                     temperature: temp,
                     intelligent_mode: intelligentMode,
                     image_gen_mode: imageGenMode,
+                    style_profile: styleProfile,
                     compression_enabled: compressionEnabled,
                     compression_threshold: threshold,
                     keep_recent: 2
@@ -1403,10 +1405,56 @@ function displayPipelineResult(result) {
 window.appendMessage = function(role, content) {
     const type = role === "user" ? "user" : "ai";
     addMessage(content, type);
-    
+
     // Dispatch event for sidebar to reload after AI message
     if (role === "assistant" || role === "ai") {
         console.log('🔔 AI message added event dispatched');
         document.dispatchEvent(new CustomEvent("ai-message-added"));
     }
 };
+
+// ===== STYLE GENERATION =====
+
+// Toggle image generation options visibility
+const imageGenCheckbox = document.getElementById('image-gen-mode-checkbox');
+const imageGenOptions = document.getElementById('image-gen-options');
+const styleProfileSelect = document.getElementById('style-profile-select');
+
+if (imageGenCheckbox && imageGenOptions) {
+    imageGenCheckbox.addEventListener('change', (e) => {
+        imageGenOptions.style.display = e.target.checked ? 'block' : 'none';
+
+        // Load style profiles when enabling
+        if (e.target.checked && styleProfileSelect.options.length === 1) {
+            loadStyleProfiles();
+        }
+    });
+}
+
+// Load style profiles from API
+async function loadStyleProfiles() {
+    try {
+        const response = await fetch('/api/style/profiles');
+        const data = await response.json();
+
+        if (data.success) {
+            // Keep "None" option
+            const noneOption = styleProfileSelect.options[0];
+            styleProfileSelect.innerHTML = '';
+            styleProfileSelect.appendChild(noneOption);
+
+            // Add profile options
+            Object.keys(data.profiles).forEach(key => {
+                const profile = data.profiles[key];
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = profile.name;
+                styleProfileSelect.appendChild(option);
+            });
+
+            console.log('Loaded style profiles:', Object.keys(data.profiles));
+        }
+    } catch (error) {
+        console.error('Error loading style profiles:', error);
+    }
+}
