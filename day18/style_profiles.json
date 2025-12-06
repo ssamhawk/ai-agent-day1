@@ -1,0 +1,101 @@
+{
+  "tech_startup": {
+    "name": "Tech Startup",
+    "description": "Modern, innovative 3D isometric style with tech aesthetics",
+    "color_palette": ["#4A90E2", "#50E3C2", "#F5F7FA", "#2C3E50"],
+    "mood": "innovative, energetic, modern, futuristic",
+    "visual_style": "3D isometric design, gradient overlays, sharp geometric shapes",
+    "texture": "smooth, glossy, metallic surfaces",
+    "lighting": "bright, multiple light sources, neon accents",
+    "level_of_detail": "medium",
+    "camera_style": "isometric 45-degree angle, clean composition",
+    "dos": [
+      "use vibrant blue and teal gradients",
+      "include floating UI elements or holograms",
+      "add subtle grid patterns or tech textures",
+      "use soft glow effects",
+      "incorporate geometric shapes"
+    ],
+    "donts": [
+      "vintage or retro aesthetics",
+      "hand-drawn or sketchy styles",
+      "organic natural shapes",
+      "warm earth tones",
+      "cluttered compositions"
+    ],
+    "prompt_suffix": "3D isometric design, vibrant blue (#4A90E2) and teal (#50E3C2) gradient background, modern tech aesthetic, floating geometric elements, clean minimalist composition, soft neon glow, glossy metallic surfaces, sharp edges, professional lighting, high contrast",
+    "seed_range": {
+      "base": 1000,
+      "min": 1000,
+      "max": 1999
+    },
+    "default_aspect": "square",
+    "version": "1.0"
+  },
+  "luxury_brand": {
+    "name": "Luxury Brand",
+    "description": "Elegant, sophisticated photorealistic style with premium aesthetics",
+    "color_palette": ["#1A1A1A", "#D4AF37", "#FFFFFF", "#2C2C2C"],
+    "mood": "elegant, exclusive, sophisticated, premium",
+    "visual_style": "photorealistic, dramatic chiaroscuro lighting, shallow depth of field",
+    "texture": "premium materials, marble, leather, gold accents",
+    "lighting": "dramatic side lighting, high contrast shadows, golden hour warmth",
+    "level_of_detail": "very high",
+    "camera_style": "professional product photography, shallow depth of field, bokeh",
+    "dos": [
+      "use gold (#D4AF37) metallic accents",
+      "include premium materials like marble or leather",
+      "add subtle reflections and highlights",
+      "use dramatic shadows for depth",
+      "maintain minimalist elegant composition"
+    ],
+    "donts": [
+      "bright saturated colors",
+      "cartoon or illustrative styles",
+      "busy or cluttered backgrounds",
+      "flat lighting",
+      "cheap or synthetic materials"
+    ],
+    "prompt_suffix": "photorealistic professional product photography, dramatic chiaroscuro lighting, elegant black (#1A1A1A) background with gold (#D4AF37) metallic accents, marble or premium leather textures, shallow depth of field with beautiful bokeh, subtle reflections, high-end luxury aesthetic, ultra-detailed, cinematic composition",
+    "seed_range": {
+      "base": 2000,
+      "min": 2000,
+      "max": 2999
+    },
+    "default_aspect": "portrait_4_3",
+    "version": "1.0"
+  },
+  "eco_friendly": {
+    "name": "Eco-Friendly",
+    "description": "Natural, sustainable watercolor style with organic aesthetics",
+    "color_palette": ["#6B8E23", "#8FBC8F", "#F5F5DC", "#98D8C8"],
+    "mood": "natural, calm, sustainable, peaceful, wholesome",
+    "visual_style": "soft watercolor painting, organic flowing shapes, hand-crafted feel",
+    "texture": "recycled paper texture, natural fibers, soft brushstrokes",
+    "lighting": "soft natural daylight, gentle shadows, warm sunlight filtering through leaves",
+    "level_of_detail": "medium-low, intentionally soft edges",
+    "camera_style": "natural perspective, centered composition, airy negative space",
+    "dos": [
+      "use earthy olive green (#6B8E23) and sage (#8FBC8F) tones",
+      "include natural plant elements or leaves",
+      "add subtle paper or linen textures",
+      "use soft watercolor edges",
+      "incorporate circular or organic shapes"
+    ],
+    "donts": [
+      "harsh industrial materials or metals",
+      "bright neon or synthetic colors",
+      "sharp geometric shapes",
+      "dramatic dark shadows",
+      "overly polished or glossy surfaces"
+    ],
+    "prompt_suffix": "soft watercolor illustration, natural olive green (#6B8E23) and sage (#8FBC8F) color palette, organic flowing shapes, recycled paper texture, gentle natural daylight, plant elements and leaves, eco-friendly sustainable aesthetic, hand-painted feel, soft edges, peaceful composition with negative space",
+    "seed_range": {
+      "base": 3000,
+      "min": 3000,
+      "max": 3999
+    },
+    "default_aspect": "landscape_4_3",
+    "version": "1.0"
+  }
+}
