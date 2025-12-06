@@ -56,7 +56,8 @@
                 <!-- Mode Selector -->
                 <div class="mode-selector">
                     <button class="mode-btn active" data-mode="rag">📚 RAG Search</button>
-                    <button class="mode-btn" data-mode="image">🎨 Generate Image</button>
+                    <button class="mode-btn" data-mode="image">🖼️ Generate Image</button>
+                    <button class="mode-btn" data-mode="style">🎨 Style Generation</button>
                 </div>
 
                 <!-- RAG Mode -->
@@ -171,6 +172,78 @@
                     <div class="query-actions">
                         <button class="btn btn-primary" id="generate-image-btn">🎨 Generate Image</button>
                         <button class="btn btn-secondary" id="view-stats-btn">📊 View Stats</button>
+                    </div>
+                </div>
+
+                <!-- Style Generation Mode -->
+                <div id="style-mode" class="mode-content" style="display: none;">
+                    <h2>Brand-Consistent Generation</h2>
+
+                    <div class="style-selector-wrapper">
+                        <label for="style-profile">Style Profile:</label>
+                        <select id="style-profile" class="style-select">
+                            <option value="">Loading profiles...</option>
+                        </select>
+                        <button class="btn-info" id="style-info-btn">ℹ️ Info</button>
+                    </div>
+
+                    <div class="query-input-wrapper">
+                        <label for="style-subject">Subject:</label>
+                        <input
+                            type="text"
+                            id="style-subject"
+                            placeholder="e.g., coffee cup, laptop, headphones"
+                            class="style-input"
+                        />
+                    </div>
+
+                    <div class="query-input-wrapper">
+                        <label for="style-details">Additional Details (optional):</label>
+                        <input
+                            type="text"
+                            id="style-details"
+                            placeholder="e.g., on wooden table, with steam"
+                            class="style-input"
+                        />
+                    </div>
+
+                    <div class="query-controls">
+                        <button class="btn-collapse" id="style-options-toggle">
+                            ⚙️ Options <span class="arrow">▶</span>
+                        </button>
+                        <div class="options-content" id="style-options-content">
+                            <div class="option-group">
+                                <label>Model:</label>
+                                <select id="style-model" class="model-select">
+                                    <option value="">Default (from profile)</option>
+                                    <option value="flux-schnell">Flux Schnell (Fast, $0.003)</option>
+                                    <option value="flux-dev">Flux Dev (Balanced, $0.025)</option>
+                                    <option value="flux-pro">Flux Pro (Best, $0.055)</option>
+                                </select>
+                            </div>
+                            <div class="option-group">
+                                <label>Size:</label>
+                                <select id="style-size" class="size-select">
+                                    <option value="">Default (from profile)</option>
+                                    <option value="landscape_4_3">Landscape 4:3 (1024×768)</option>
+                                    <option value="landscape_16_9">Landscape 16:9 (1024×576)</option>
+                                    <option value="square">Square (512×512)</option>
+                                    <option value="square_hd">Square HD (1024×1024)</option>
+                                    <option value="portrait_4_3">Portrait 4:3 (768×1024)</option>
+                                    <option value="portrait_16_9">Portrait 16:9 (576×1024)</option>
+                                </select>
+                            </div>
+                            <div class="option-group">
+                                <label>Variants for batch: <span id="num-variants-value">3</span></label>
+                                <input type="range" id="num-variants" min="1" max="5" value="3" step="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="query-actions">
+                        <button class="btn btn-primary" id="generate-style-single-btn">🎨 Generate</button>
+                        <button class="btn btn-primary" id="generate-style-batch-btn">📦 Batch (3 variants)</button>
+                        <button class="btn btn-secondary" id="compare-all-styles-btn">⚖️ Compare All Styles</button>
                     </div>
                 </div>
             </section>

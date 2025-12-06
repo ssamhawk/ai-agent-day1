@@ -805,3 +805,406 @@ clearIndexBtn.addEventListener('click', async () => {
 initSocket();
 loadHeaderStats();
 updateUploadButtons();
+
+// ===== STYLE GENERATION MODE =====
+
+// Style mode elements
+const styleProfileSelect = document.getElementById('style-profile');
+const styleSubjectInput = document.getElementById('style-subject');
+const styleDetailsInput = document.getElementById('style-details');
+const styleModelSelect = document.getElementById('style-model');
+const styleSizeSelect = document.getElementById('style-size');
+const numVariantsSlider = document.getElementById('num-variants');
+const numVariantsValue = document.getElementById('num-variants-value');
+const styleOptionsToggle = document.getElementById('style-options-toggle');
+const styleOptionsContent = document.getElementById('style-options-content');
+const styleInfoBtn = document.getElementById('style-info-btn');
+const generateStyleSingleBtn = document.getElementById('generate-style-single-btn');
+const generateStyleBatchBtn = document.getElementById('generate-style-batch-btn');
+const compareAllStylesBtn = document.getElementById('compare-all-styles-btn');
+
+// Mode switching
+const modeBtns = document.querySelectorAll('.mode-btn');
+const modeContents = document.querySelectorAll('.mode-content');
+
+modeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode;
+
+        // Update buttons
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update content
+        modeContents.forEach(content => {
+            content.classList.remove('active');
+            content.style.display = 'none';
+        });
+
+        const targetContent = document.getElementById(`${mode}-mode`);
+        if (targetContent) {
+            targetContent.classList.add('active');
+            targetContent.style.display = 'block';
+        }
+
+        // Load profiles when switching to style mode
+        if (mode === 'style' && styleProfileSelect.options.length <= 1) {
+            loadStyleProfiles();
+        }
+    });
+});
+
+// Style options toggle
+if (styleOptionsToggle) {
+    styleOptionsToggle.addEventListener('click', () => {
+        styleOptionsToggle.classList.toggle('expanded');
+        styleOptionsContent.classList.toggle('expanded');
+    });
+}
+
+// Num variants slider
+if (numVariantsSlider) {
+    numVariantsSlider.addEventListener('input', (e) => {
+        const value = e.target.value;
+        numVariantsValue.textContent = value;
+        generateStyleBatchBtn.textContent = `📦 Batch (${value} variants)`;
+    });
+}
+
+// Load style profiles
+let styleProfiles = {};
+
+async function loadStyleProfiles() {
+    try {
+        const response = await fetch('/api/style/profiles');
+        const data = await response.json();
+
+        if (data.success) {
+            styleProfiles = data.profiles;
+
+            // Populate select
+            styleProfileSelect.innerHTML = '<option value="">Select a style profile...</option>';
+            Object.keys(data.profiles).forEach(key => {
+                const profile = data.profiles[key];
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = profile.name;
+                styleProfileSelect.appendChild(option);
+            });
+
+            console.log('Loaded style profiles:', Object.keys(data.profiles));
+        } else {
+            showNotification('error', 'Failed to load style profiles');
+        }
+    } catch (error) {
+        console.error('Error loading style profiles:', error);
+        showNotification('error', 'Failed to load style profiles');
+    }
+}
+
+// Show style info modal
+if (styleInfoBtn) {
+    styleInfoBtn.addEventListener('click', () => {
+        const selectedProfile = styleProfileSelect.value;
+        if (!selectedProfile) {
+            showNotification('error', 'Please select a style profile first');
+            return;
+        }
+
+        showStyleInfo(selectedProfile);
+    });
+}
+
+function showStyleInfo(profileKey) {
+    const profile = styleProfiles[profileKey];
+    if (!profile) return;
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'style-info-modal';
+    modal.innerHTML = `
+        <div class="style-info-content">
+            <div class="style-info-header">
+                <h3>${profile.name}</h3>
+                <button class="style-info-close">✕</button>
+            </div>
+            <div class="style-info-section">
+                <h4>Description</h4>
+                <p>${profile.description}</p>
+            </div>
+            <div class="style-info-section">
+                <h4>Mood</h4>
+                <p>${profile.mood}</p>
+            </div>
+            <div class="style-info-section">
+                <h4>Visual Style</h4>
+                <p>${profile.visual_style}</p>
+            </div>
+            <div class="style-info-section">
+                <h4>Color Palette</h4>
+                <div class="style-color-palette">
+                    ${profile.color_palette.map(color => `
+                        <div class="style-color-swatch" style="background: ${color}"></div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="style-info-section">
+                <h4>Details</h4>
+                <p><strong>Aspect Ratio:</strong> ${profile.aspect_ratio}</p>
+                <p><strong>Seed Range:</strong> ${profile.seed_range}</p>
+                <p><strong>Version:</strong> ${profile.version}</p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target.classList.contains('style-info-close')) {
+            modal.remove();
+        }
+    });
+}
+
+// Generate single variant
+if (generateStyleSingleBtn) {
+    generateStyleSingleBtn.addEventListener('click', async () => {
+        const profile = styleProfileSelect.value;
+        const subject = styleSubjectInput.value.trim();
+
+        if (!profile) {
+            showNotification('error', 'Please select a style profile');
+            return;
+        }
+
+        if (!subject) {
+            showNotification('error', 'Please enter a subject');
+            return;
+        }
+
+        generateStyleSingleBtn.disabled = true;
+        generateStyleSingleBtn.textContent = '⏳ Generating...';
+
+        try {
+            const payload = {
+                profile: profile,
+                subject: subject,
+                additional_details: styleDetailsInput.value.trim() || null,
+                model: styleModelSelect.value || null,
+                size: styleSizeSelect.value || null,
+                variant: 0
+            };
+
+            const response = await fetch('/api/style/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('success', 'Image generated successfully!');
+                displayStyleResults([data.data], profile);
+            } else {
+                showNotification('error', data.error || 'Generation failed');
+            }
+        } catch (error) {
+            console.error('Error generating image:', error);
+            showNotification('error', 'Failed to generate image');
+        } finally {
+            generateStyleSingleBtn.disabled = false;
+            generateStyleSingleBtn.textContent = '🎨 Generate';
+        }
+    });
+}
+
+// Generate batch
+if (generateStyleBatchBtn) {
+    generateStyleBatchBtn.addEventListener('click', async () => {
+        const profile = styleProfileSelect.value;
+        const subject = styleSubjectInput.value.trim();
+        const numVariants = parseInt(numVariantsSlider.value);
+
+        if (!profile) {
+            showNotification('error', 'Please select a style profile');
+            return;
+        }
+
+        if (!subject) {
+            showNotification('error', 'Please enter a subject');
+            return;
+        }
+
+        generateStyleBatchBtn.disabled = true;
+        const originalText = generateStyleBatchBtn.textContent;
+        generateStyleBatchBtn.textContent = `⏳ Generating ${numVariants} variants...`;
+
+        try {
+            const payload = {
+                profile: profile,
+                subject: subject,
+                additional_details: styleDetailsInput.value.trim() || null,
+                model: styleModelSelect.value || null,
+                size: styleSizeSelect.value || null,
+                num_variants: numVariants
+            };
+
+            const response = await fetch('/api/style/batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const successCount = data.data.summary.successes;
+                showNotification('success', `Generated ${successCount}/${numVariants} images successfully!`);
+                displayStyleResults(data.data.results, profile);
+            } else {
+                showNotification('error', data.error || 'Batch generation failed');
+            }
+        } catch (error) {
+            console.error('Error generating batch:', error);
+            showNotification('error', 'Failed to generate batch');
+        } finally {
+            generateStyleBatchBtn.disabled = false;
+            generateStyleBatchBtn.textContent = originalText;
+        }
+    });
+}
+
+// Compare all styles
+if (compareAllStylesBtn) {
+    compareAllStylesBtn.addEventListener('click', async () => {
+        const subject = styleSubjectInput.value.trim();
+
+        if (!subject) {
+            showNotification('error', 'Please enter a subject');
+            return;
+        }
+
+        compareAllStylesBtn.disabled = true;
+        compareAllStylesBtn.textContent = '⏳ Comparing styles...';
+
+        try {
+            const payload = {
+                subject: subject,
+                variants_per_style: 2,
+                model: styleModelSelect.value || null
+            };
+
+            const response = await fetch('/api/style/compare', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('success', 'Style comparison complete!');
+                displayComparisonResults(data.data);
+            } else {
+                showNotification('error', data.error || 'Comparison failed');
+            }
+        } catch (error) {
+            console.error('Error comparing styles:', error);
+            showNotification('error', 'Failed to compare styles');
+        } finally {
+            compareAllStylesBtn.disabled = false;
+            compareAllStylesBtn.textContent = '⚖️ Compare All Styles';
+        }
+    });
+}
+
+// Display style results
+function displayStyleResults(results, profileName) {
+    resultsGrid.innerHTML = '';
+
+    const successfulResults = results.filter(r => r.success);
+
+    if (successfulResults.length === 0) {
+        resultsGrid.innerHTML = '<div class="empty-state-full"><h3>No images generated</h3></div>';
+        return;
+    }
+
+    const gridHTML = `
+        <div class="image-grid">
+            ${successfulResults.map((result, idx) => `
+                <div class="image-card">
+                    <img src="/api/image/${result.saved_path.split('/').pop()}" alt="${result.prompt}">
+                    <div class="image-card-info">
+                        <div class="image-card-title">${result.style_metadata.subject}</div>
+                        <div class="image-card-meta">
+                            <span>Variant ${result.style_metadata.variant + 1}</span>
+                            <span>${result.latency_seconds}s</span>
+                        </div>
+                        <div class="image-card-meta">
+                            <span>Seed: ${result.parameters.actual_seed || result.parameters.seed}</span>
+                            <span>$${result.cost_estimate_usd.toFixed(4)}</span>
+                        </div>
+                        <div class="image-card-badge">${profileName}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    resultsGrid.innerHTML = gridHTML;
+}
+
+// Display comparison results
+function displayComparisonResults(comparisonData) {
+    resultsGrid.innerHTML = '';
+
+    const allResults = [];
+    Object.entries(comparisonData.styles).forEach(([styleName, batchData]) => {
+        batchData.results.forEach(result => {
+            if (result.success) {
+                allResults.push({ ...result, styleName });
+            }
+        });
+    });
+
+    if (allResults.length === 0) {
+        resultsGrid.innerHTML = '<div class="empty-state-full"><h3>No images generated</h3></div>';
+        return;
+    }
+
+    const gridHTML = `
+        <div class="comparison-header">
+            <h3>Style Comparison: "${comparisonData.subject}"</h3>
+            <p>${comparisonData.summary.total_successes}/${comparisonData.summary.total_images} images generated • $${comparisonData.summary.total_cost_usd.toFixed(4)} total</p>
+        </div>
+        <div class="image-grid">
+            ${allResults.map(result => `
+                <div class="image-card">
+                    <img src="/api/image/${result.saved_path.split('/').pop()}" alt="${result.prompt}">
+                    <div class="image-card-info">
+                        <div class="image-card-title">${result.style_metadata.subject}</div>
+                        <div class="image-card-meta">
+                            <span>Variant ${result.style_metadata.variant + 1}</span>
+                            <span>${result.latency_seconds}s</span>
+                        </div>
+                        <div class="image-card-meta">
+                            <span>Seed: ${result.parameters.actual_seed || result.parameters.seed}</span>
+                            <span>$${result.cost_estimate_usd.toFixed(4)}</span>
+                        </div>
+                        <div class="image-card-badge">${result.styleName}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    resultsGrid.innerHTML = gridHTML;
+}
+
+// Load profiles on page load if style mode is visible
+if (document.getElementById('style-mode')) {
+    // Will be loaded when user switches to style mode
+    console.log('Style generation mode ready');
+}
