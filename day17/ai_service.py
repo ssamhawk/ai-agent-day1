@@ -361,7 +361,6 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                         ai_response = final_response.choices[0].message.content
 
                         # Remove any markdown image syntax that AI might have added
-                        import re
                         ai_response = re.sub(r'!\[([^\]]*)\]\([^\)]+\)', '', ai_response)
 
                         # Add image as simple HTML img tag at the very end

@@ -78,12 +78,7 @@ class ImageGenerator:
             arguments["seed"] = seed
 
         if steps is not None:
-            if model == "flux-schnell":
-                arguments["num_inference_steps"] = steps
-            elif model in ["flux-dev", "flux-pro"]:
-                arguments["num_inference_steps"] = steps
-            elif model == "sdxl":
-                arguments["num_inference_steps"] = steps
+            arguments["num_inference_steps"] = steps
 
         try:
             # Call fal.ai API

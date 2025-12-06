@@ -5,7 +5,6 @@ import os
 import logging
 from datetime import datetime
 from flask import jsonify, request, send_file
-from flask_wtf.csrf import CSRFProtect
 
 logger = logging.getLogger(__name__)
 
