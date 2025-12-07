@@ -33,6 +33,15 @@ memory = None
 # Module logger
 logger = logging.getLogger(__name__)
 
+# Day 18: Reference image style cloning constants
+TEXT_OVERLAY_KEYWORDS = ["text:", "words:", "write", "saying", "with text", "with words", "надпис"]
+REFERENCE_ONLY_KEYWORDS = [
+    "image", "picture", "photo", "generate", "create", "make",
+    "draw", "show", "go", "just", "now", "this", "same",
+    "зображення", "картинка", "малюй", "зроби", "покажи"
+]
+MIN_CUSTOM_PROMPT_LENGTH = 4  # Prompts shorter than this use reference as-is
+
 
 def generate_dynamic_prompt(response_format, fields=None, intelligent_mode=False):
     """Generate system prompt based on format and mode with optional custom fields"""
@@ -211,7 +220,8 @@ def process_mcp_commands(text, intelligent_mode=False):
 
 def get_ai_response(user_message, response_format="plain", fields=None, temperature=OPENAI_TEMPERATURE,
                    intelligent_mode=False, max_tokens=OPENAI_MAX_TOKENS, compression_enabled=True,
-                   threshold=DEFAULT_COMPRESSION_THRESHOLD, keep_recent=DEFAULT_RECENT_KEEP, image_gen_mode=False):
+                   threshold=DEFAULT_COMPRESSION_THRESHOLD, keep_recent=DEFAULT_RECENT_KEEP, image_gen_mode=False,
+                   style_profile=None, reference_style=None, reference_subject=None):
     """
     Get AI response with compression support and MCP integration
 
@@ -225,6 +235,8 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
         compression_enabled (bool): Enable compression
         threshold (int): Compression threshold
         keep_recent (int): Recent messages to keep
+        image_gen_mode (bool): Enable image generation tool
+        style_profile (str): Style profile name for image generation (Day 18)
 
     Returns:
         dict: Response with compression stats and MCP usage info
@@ -232,6 +244,34 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
     try:
         # Get system prompt
         system_prompt = generate_dynamic_prompt(response_format, fields, intelligent_mode)
+
+        # Add image generation instructions if enabled (Day 18)
+        if image_gen_mode:
+            img_instructions = "\n\n🎨 IMAGE GENERATION MODE ENABLED\n\n"
+            img_instructions += "You have access to a powerful image generation tool. When users ask you to create, generate, or draw images, USE THE generate_image TOOL.\n\n"
+
+            if reference_style or reference_subject:
+                img_instructions += "📸 REFERENCE IMAGE DETECTED:\n"
+                if reference_subject:
+                    img_instructions += f"- Subject from reference: {reference_subject}\n"
+                if reference_style:
+                    style_preview = reference_style[:150] + "..." if len(reference_style) > 150 else reference_style
+                    img_instructions += f"- Style from reference: {style_preview}\n"
+                img_instructions += "\n⚠️ IMPORTANT: When calling generate_image tool:\n"
+                img_instructions += "1. Use the EXACT words/text the user provides in their message as the prompt\n"
+                img_instructions += "2. If user says 'generate with text X Y Z', use 'X Y Z' as the prompt\n"
+                img_instructions += "3. If user provides specific words/phrases, include them in the prompt\n"
+                img_instructions += "4. DO NOT create your own detailed description - use what the user wrote\n"
+                img_instructions += "5. The reference style and subject will be AUTOMATICALLY applied in the backend\n"
+                img_instructions += "6. Your job is ONLY to pass the user's words to the tool, not to interpret or expand them\n\n"
+                img_instructions += "Example:\n"
+                img_instructions += "- User: 'generate with those words: dream big' → Call generate_image(prompt='dream big')\n"
+                img_instructions += "- User: 'create image with text believe in yourself' → Call generate_image(prompt='believe in yourself')\n"
+                img_instructions += "- User: 'just generate' → Call generate_image(prompt='image')\n"
+            else:
+                img_instructions += "When users ask you to generate images, call the generate_image tool with a detailed description.\n"
+
+            system_prompt += img_instructions
 
         # Get conversation state
         state = get_conversation_state()
@@ -316,7 +356,7 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
             if function_name == "generate_image":
                 import json
                 function_args = json.loads(tool_call.function.arguments)
-                prompt = function_args.get("prompt")
+                base_prompt = function_args.get("prompt")
                 size = function_args.get("size", "square")
 
                 # Initialize image generator
@@ -325,18 +365,114 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                     generator = ImageGenerator(fal_key)
                     img_logger = GenerationLogger(log_dir="logs/images")
 
+                    # Day 18: Apply style (reference style takes priority over profile)
+                    final_prompt = base_prompt
+                    seed = None
+                    metadata = {}
+
+                    # Priority 1: Reference style from cloned image (Day 18)
+                    if reference_style:
+                        try:
+                            # Build styled prompt with reference style FIRST (higher priority)
+                            # Default subject: use base_prompt, override with reference if available
+                            subject_to_use = base_prompt
+
+                            if reference_subject:
+                                # IMPORTANT: Use original user_message for detection, not base_prompt
+                                # AI Agent may extract only part of the prompt, losing trigger keywords
+                                user_msg_lower = user_message.lower()
+
+                                # Find text overlay keyword (if any) - avoids double iteration
+                                found_text_keyword = next((kw for kw in TEXT_OVERLAY_KEYWORDS if kw in user_msg_lower), None)
+
+                                # Check if it's a reference-only prompt
+                                use_reference_only = (
+                                    base_prompt.lower().strip() in REFERENCE_ONLY_KEYWORDS or
+                                    len(base_prompt.strip()) < MIN_CUSTOM_PROMPT_LENGTH
+                                )
+
+                                if found_text_keyword:
+                                    # Extract text using case-insensitive regex (preserves original case)
+                                    text_to_display = re.sub(found_text_keyword, "", base_prompt, flags=re.IGNORECASE).strip()
+
+                                    # Add text overlay with constraints to fit in image
+                                    subject_to_use = f"{reference_subject}, with large bold centered white text that fits within image bounds, displaying: '{text_to_display}'"
+                                    logger.info(f"📝 Adding text overlay: {text_to_display}")
+                                elif use_reference_only:
+                                    # Just use reference subject as-is
+                                    subject_to_use = reference_subject
+                                    logger.info(f"📸 Using reference subject as-is (trigger: '{base_prompt}')")
+                                else:
+                                    # User wants custom subject - still use reference but combine
+                                    subject_to_use = f"{base_prompt} in the same composition as {reference_subject}"
+                                    logger.info(f"🔄 Custom subject with reference composition: {base_prompt}")
+
+                                logger.info(f"📸 Reference subject available: {reference_subject}")
+                            else:
+                                # No reference subject - use base_prompt as-is
+                                logger.info(f"⚠️  No reference subject - using base prompt only")
+
+                            # Format: [STYLE] + [SUBJECT] to ensure style dominates
+                            final_prompt = f"{reference_style}. Subject: {subject_to_use}"
+
+                            metadata = {
+                                "style_method": "reference_cloning",
+                                "base_prompt": base_prompt,
+                                "reference_subject": reference_subject if reference_subject else None,
+                                "reference_style": reference_style[:100] + "..." if len(reference_style) > 100 else reference_style
+                            }
+
+                            logger.info(f"🖼️  Reference Style Cloning Applied (style-first approach)")
+                            logger.info(f"   Base prompt: {base_prompt}")
+                            if reference_subject:
+                                logger.info(f"   Reference subject: {reference_subject}")
+                            logger.info(f"   Reference style: {reference_style[:100]}...")
+                            logger.info(f"   Final prompt: {final_prompt[:200]}...")
+                        except Exception as e:
+                            logger.warning(f"⚠️  Failed to apply reference style: {str(e)}")
+
+                    # Priority 2: Style profile (if no reference style)
+                    elif style_profile:
+                        try:
+                            from style_manager import StyleManager
+                            style_manager = StyleManager(profiles_path="style_profiles.json")
+
+                            # Build styled prompt
+                            final_prompt = style_manager.build_prompt(base_prompt, style_profile)
+
+                            # Get seed for this profile
+                            seed = style_manager.get_seed_for_profile(style_profile, variant=0)
+
+                            # Get profile info for metadata
+                            profile = style_manager.get_profile(style_profile)
+                            metadata = {
+                                "style_method": "profile",
+                                "style_profile": style_profile,
+                                "style_version": profile.get("version", "1.0"),
+                                "base_prompt": base_prompt,
+                                "seed": seed
+                            }
+
+                            logger.info(f"🎨 Style Profile Applied: {style_profile}")
+                            logger.info(f"   Base prompt: {base_prompt}")
+                            logger.info(f"   Styled prompt: {final_prompt}")
+                            logger.info(f"   Seed: {seed}")
+                        except Exception as e:
+                            logger.warning(f"⚠️  Failed to apply style profile: {str(e)}")
+
                     # Generate image
                     from datetime import datetime
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    safe_prompt = "".join(c if c.isalnum() else "_" for c in prompt[:30])
+                    safe_prompt = "".join(c if c.isalnum() else "_" for c in base_prompt[:30])
                     filename = f"{timestamp}_{safe_prompt}.png"
                     save_path = f"generated_images/{filename}"
 
                     result = generator.generate(
-                        prompt=prompt,
+                        prompt=final_prompt,
                         model="flux-schnell",
                         size=size,
-                        save_path=save_path
+                        save_path=save_path,
+                        seed=seed
                     )
 
                     img_logger.log_generation(result)

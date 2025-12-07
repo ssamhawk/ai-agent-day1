@@ -1,0 +1,266 @@
+{
+  "tech_startup": {
+    "name": "Tech Startup",
+    "description": "Modern, innovative 3D isometric style with tech aesthetics",
+    "color_palette": ["#4A90E2", "#50E3C2", "#F5F7FA", "#2C3E50"],
+    "mood": "innovative, energetic, modern, futuristic",
+    "visual_style": "3D isometric design, gradient overlays, sharp geometric shapes",
+    "texture": "smooth, glossy, metallic surfaces",
+    "lighting": "bright, multiple light sources, neon accents",
+    "level_of_detail": "medium",
+    "camera_style": "isometric 45-degree angle, clean composition",
+    "dos": [
+      "use vibrant blue and teal gradients",
+      "include floating UI elements or holograms",
+      "add subtle grid patterns or tech textures",
+      "use soft glow effects",
+      "incorporate geometric shapes"
+    ],
+    "donts": [
+      "vintage or retro aesthetics",
+      "hand-drawn or sketchy styles",
+      "organic natural shapes",
+      "warm earth tones",
+      "cluttered compositions"
+    ],
+    "prompt_suffix": "3D isometric design, vibrant blue (#4A90E2) and teal (#50E3C2) gradient background, modern tech aesthetic, floating geometric elements, clean minimalist composition, soft neon glow, glossy metallic surfaces, sharp edges, professional lighting, high contrast",
+    "seed_range": {
+      "base": 1000,
+      "min": 1000,
+      "max": 1999
+    },
+    "default_aspect": "square",
+    "version": "1.0"
+  },
+  "luxury_brand": {
+    "name": "Luxury Brand",
+    "description": "Elegant, sophisticated photorealistic style with premium aesthetics",
+    "color_palette": ["#1A1A1A", "#D4AF37", "#FFFFFF", "#2C2C2C"],
+    "mood": "elegant, exclusive, sophisticated, premium",
+    "visual_style": "photorealistic, dramatic chiaroscuro lighting, shallow depth of field",
+    "texture": "premium materials, marble, leather, gold accents",
+    "lighting": "dramatic side lighting, high contrast shadows, golden hour warmth",
+    "level_of_detail": "very high",
+    "camera_style": "professional product photography, shallow depth of field, bokeh",
+    "dos": [
+      "use gold (#D4AF37) metallic accents",
+      "include premium materials like marble or leather",
+      "add subtle reflections and highlights",
+      "use dramatic shadows for depth",
+      "maintain minimalist elegant composition"
+    ],
+    "donts": [
+      "bright saturated colors",
+      "cartoon or illustrative styles",
+      "busy or cluttered backgrounds",
+      "flat lighting",
+      "cheap or synthetic materials"
+    ],
+    "prompt_suffix": "photorealistic professional product photography, dramatic chiaroscuro lighting, elegant black (#1A1A1A) background with gold (#D4AF37) metallic accents, marble or premium leather textures, shallow depth of field with beautiful bokeh, subtle reflections, high-end luxury aesthetic, ultra-detailed, cinematic composition",
+    "seed_range": {
+      "base": 2000,
+      "min": 2000,
+      "max": 2999
+    },
+    "default_aspect": "portrait_4_3",
+    "version": "1.0"
+  },
+  "eco_friendly": {
+    "name": "Eco-Friendly",
+    "description": "Natural, sustainable watercolor style with organic aesthetics",
+    "color_palette": ["#6B8E23", "#8FBC8F", "#F5F5DC", "#98D8C8"],
+    "mood": "natural, calm, sustainable, peaceful, wholesome",
+    "visual_style": "soft watercolor painting, organic flowing shapes, hand-crafted feel",
+    "texture": "recycled paper texture, natural fibers, soft brushstrokes",
+    "lighting": "soft natural daylight, gentle shadows, warm sunlight filtering through leaves",
+    "level_of_detail": "medium-low, intentionally soft edges",
+    "camera_style": "natural perspective, centered composition, airy negative space",
+    "dos": [
+      "use earthy olive green (#6B8E23) and sage (#8FBC8F) tones",
+      "include natural plant elements or leaves",
+      "add subtle paper or linen textures",
+      "use soft watercolor edges",
+      "incorporate circular or organic shapes"
+    ],
+    "donts": [
+      "harsh industrial materials or metals",
+      "bright neon or synthetic colors",
+      "sharp geometric shapes",
+      "dramatic dark shadows",
+      "overly polished or glossy surfaces"
+    ],
+    "prompt_suffix": "soft watercolor illustration, natural olive green (#6B8E23) and sage (#8FBC8F) color palette, organic flowing shapes, recycled paper texture, gentle natural daylight, plant elements and leaves, eco-friendly sustainable aesthetic, hand-painted feel, soft edges, peaceful composition with negative space",
+    "seed_range": {
+      "base": 3000,
+      "min": 3000,
+      "max": 3999
+    },
+    "default_aspect": "landscape_4_3",
+    "version": "1.0"
+  },
+  "cyberpunk_neon": {
+    "name": "Cyberpunk Neon",
+    "description": "Futuristic cyberpunk style with vibrant neon colors and dark urban atmosphere",
+    "color_palette": ["#FF006E", "#00F0FF", "#8338EC", "#1A1A2E"],
+    "mood": "futuristic, edgy, energetic, mysterious, rebellious",
+    "visual_style": "digital art, neon-lit cyberpunk aesthetic, high contrast, glitch effects",
+    "texture": "holographic, rain-slicked surfaces, metallic chrome, digital noise",
+    "lighting": "vibrant neon glow, dramatic rim lighting, purple and cyan light sources, reflective wet surfaces",
+    "level_of_detail": "high",
+    "camera_style": "cinematic wide angle, dutch angle tilts, atmospheric depth",
+    "dos": [
+      "use bright neon pink (#FF006E) and cyan (#00F0FF) lights",
+      "include glowing holographic elements or UI overlays",
+      "add rain effects and wet reflections",
+      "use purple (#8338EC) and blue color grading",
+      "incorporate cyberpunk architecture and tech details"
+    ],
+    "donts": [
+      "natural organic shapes or plants",
+      "bright daylight or sunlight",
+      "warm earthy color palettes",
+      "vintage or retro aesthetics",
+      "clean minimalist compositions"
+    ],
+    "prompt_suffix": "cyberpunk digital art, vibrant neon pink (#FF006E) and cyan (#00F0FF) lighting, dark urban atmosphere with purple (#8338EC) color grading, rain-slicked reflective surfaces, holographic UI elements, glowing neon signs, futuristic tech details, atmospheric fog, high contrast dramatic lighting, cinematic composition, blade runner aesthetic",
+    "seed_range": {
+      "base": 4000,
+      "min": 4000,
+      "max": 4999
+    },
+    "default_aspect": "landscape_16_9",
+    "version": "1.0"
+  },
+  "vintage_retro": {
+    "name": "Vintage Retro",
+    "description": "Nostalgic vintage style with warm retro colors and analog film aesthetic",
+    "color_palette": ["#D4A574", "#8B7355", "#F5E6D3", "#A0522D"],
+    "mood": "nostalgic, warm, timeless, sentimental, cozy",
+    "visual_style": "vintage film photography, retro illustration, analog aesthetic, grain texture",
+    "texture": "film grain, paper texture, faded print, slight vignette",
+    "lighting": "warm golden hour, soft diffused light, subtle lens flare, faded highlights",
+    "level_of_detail": "medium, intentionally soft focus",
+    "camera_style": "vintage camera perspective, slight vignette, centered composition, bokeh",
+    "dos": [
+      "use warm sepia (#D4A574) and brown (#8B7355) tones",
+      "add film grain and analog texture",
+      "include subtle vignetting around edges",
+      "use faded, slightly desaturated colors",
+      "incorporate retro typography or elements from 50s-80s"
+    ],
+    "donts": [
+      "ultra-modern or futuristic elements",
+      "bright neon or synthetic colors",
+      "sharp digital clarity",
+      "cold color temperatures",
+      "minimalist flat design"
+    ],
+    "prompt_suffix": "vintage retro photography, warm sepia (#D4A574) and brown (#8B7355) color palette, analog film grain texture, soft vignette, faded highlights, nostalgic 1970s aesthetic, slightly desaturated colors, golden hour warmth, bokeh, retro design elements, cozy atmosphere, timeless composition",
+    "seed_range": {
+      "base": 5000,
+      "min": 5000,
+      "max": 5999
+    },
+    "default_aspect": "square",
+    "version": "1.0"
+  },
+  "industrial_urban": {
+    "name": "Industrial Urban",
+    "description": "Raw industrial style with concrete textures and urban grit",
+    "color_palette": ["#424242", "#757575", "#E0E0E0", "#212121"],
+    "mood": "raw, edgy, minimalist, urban, gritty",
+    "visual_style": "minimalist industrial design, brutalist architecture, raw materials",
+    "texture": "rough concrete, exposed brick, weathered metal, matte surfaces",
+    "lighting": "harsh directional light, strong shadows, overcast natural light",
+    "level_of_detail": "medium-high, emphasis on material texture",
+    "camera_style": "straight-on architectural photography, symmetrical composition, wide angle",
+    "dos": [
+      "use gray (#424242, #757575) concrete tones",
+      "include raw industrial materials like concrete and metal",
+      "add weathered or distressed textures",
+      "use strong geometric shapes and lines",
+      "incorporate brutalist architectural elements"
+    ],
+    "donts": [
+      "bright cheerful colors",
+      "soft organic shapes",
+      "polished luxury materials",
+      "decorative ornamental details",
+      "warm cozy lighting"
+    ],
+    "prompt_suffix": "industrial urban photography, raw concrete (#424242) and gray (#757575) color palette, brutalist minimalist aesthetic, rough concrete and weathered metal textures, harsh directional lighting with strong shadows, geometric architectural composition, modern urban grit, matte surfaces, minimalist design, symmetrical framing",
+    "seed_range": {
+      "base": 6000,
+      "min": 6000,
+      "max": 6999
+    },
+    "default_aspect": "portrait_4_3",
+    "version": "1.0"
+  },
+  "pop_art": {
+    "name": "Pop Art",
+    "description": "Bold pop art style with vibrant colors and comic book aesthetics",
+    "color_palette": ["#FF0000", "#FFD700", "#0066FF", "#FF1493"],
+    "mood": "bold, playful, energetic, retro, fun",
+    "visual_style": "pop art illustration, comic book style, halftone dots, bold outlines",
+    "texture": "ben-day dots, halftone pattern, flat color blocks, screen print effect",
+    "lighting": "flat even lighting, no complex shadows, high saturation",
+    "level_of_detail": "medium, stylized and graphic",
+    "camera_style": "flat frontal perspective, bold graphic composition",
+    "dos": [
+      "use bright primary colors (red #FF0000, blue #0066FF, yellow #FFD700)",
+      "include halftone dot patterns or ben-day dots",
+      "add bold black outlines and shapes",
+      "use speech bubbles or comic elements",
+      "incorporate Andy Warhol or Roy Lichtenstein style"
+    ],
+    "donts": [
+      "subtle gradients or soft shading",
+      "realistic photographic textures",
+      "muted or desaturated colors",
+      "complex detailed backgrounds",
+      "naturalistic lighting"
+    ],
+    "prompt_suffix": "pop art illustration, vibrant red (#FF0000) blue (#0066FF) and yellow (#FFD700) color palette, bold halftone dot pattern, thick black outlines, flat color blocks, comic book style, Andy Warhol aesthetic, screen print effect, high contrast graphic design, retro 1960s pop art, energetic composition",
+    "seed_range": {
+      "base": 7000,
+      "min": 7000,
+      "max": 7999
+    },
+    "default_aspect": "square",
+    "version": "1.0"
+  },
+  "tropical_vibrant": {
+    "name": "Tropical Vibrant",
+    "description": "Bright tropical style with lush colors and exotic paradise vibes",
+    "color_palette": ["#00D9A3", "#FF6B35", "#F72585", "#FFC857"],
+    "mood": "energetic, fresh, lively, exotic, joyful",
+    "visual_style": "vibrant digital illustration, tropical paradise aesthetic, saturated colors",
+    "texture": "smooth gradients, lush vegetation, glossy tropical leaves",
+    "lighting": "bright tropical sunlight, vivid colors, warm golden light, high saturation",
+    "level_of_detail": "high, rich in tropical details",
+    "camera_style": "bright saturated perspective, dynamic angles, lush composition",
+    "dos": [
+      "use bright tropical green (#00D9A3) and coral (#FF6B35) colors",
+      "include tropical plants, palm leaves, exotic flowers",
+      "add vibrant pink (#F72585) and yellow (#FFC857) accents",
+      "use lush layered compositions",
+      "incorporate paradise beach or jungle elements"
+    ],
+    "donts": [
+      "cold muted color palettes",
+      "industrial or urban elements",
+      "dark moody lighting",
+      "minimal sparse compositions",
+      "winter or autumn aesthetics"
+    ],
+    "prompt_suffix": "vibrant tropical illustration, bright turquoise green (#00D9A3) and coral orange (#FF6B35) color palette, lush tropical plants and palm leaves, vivid pink (#F72585) and yellow (#FFC857) accents, exotic paradise aesthetic, bright saturated tropical sunlight, glossy vibrant leaves, energetic composition, summer vacation vibes, rich tropical details",
+    "seed_range": {
+      "base": 8000,
+      "min": 8000,
+      "max": 8999
+    },
+    "default_aspect": "landscape_4_3",
+    "version": "1.0"
+  }
+}
