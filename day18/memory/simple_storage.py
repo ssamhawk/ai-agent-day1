@@ -582,9 +582,13 @@ class SimpleMemoryStorage:
             cursor.execute("SELECT SUM(total_tokens) as sum FROM conversations")
             total_tokens = cursor.fetchone()['sum'] or 0
 
-            # Total pipelines
-            cursor.execute("SELECT COUNT(*) as count FROM pipeline_executions")
-            total_pipelines = cursor.fetchone()['count']
+            # Total pipelines (table may not exist in some databases)
+            try:
+                cursor.execute("SELECT COUNT(*) as count FROM pipeline_executions")
+                total_pipelines = cursor.fetchone()['count']
+            except Exception:
+                # Table doesn't exist, default to 0
+                total_pipelines = 0
 
             # Compression stats
             cursor.execute("""

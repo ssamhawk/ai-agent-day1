@@ -45,6 +45,10 @@ from style_manager import StyleManager
 from batch_generator import BatchGenerator
 from style_routes import register_style_routes
 
+# Import Style Cloning modules (Day 18)
+from image_style_cloner import ImageStyleCloner
+from clone_routes import register_clone_routes
+
 # Load environment variables
 load_dotenv()
 
@@ -148,8 +152,17 @@ if image_generator:
         logger.error(f"⚠️  Failed to initialize Style Generation: {str(e)}")
         style_manager = None
         batch_generator = None
+
+    # Initialize Style Cloning (Day 18)
+    try:
+        image_style_cloner = ImageStyleCloner(client)
+        logger.info("✅ Style Cloning initialized (Vision API)")
+    except Exception as e:
+        logger.error(f"⚠️  Failed to initialize Style Cloning: {str(e)}")
+        image_style_cloner = None
 else:
     style_manager = None
+    image_style_cloner = None
     batch_generator = None
 
 # Add CSP header to all responses
@@ -175,6 +188,8 @@ if image_generator and image_logger:
     register_image_routes(app, image_generator, image_logger, csrf)
 if batch_generator and style_manager:
     register_style_routes(app, batch_generator, style_manager, image_logger, csrf)
+if image_style_cloner and image_generator and image_logger:
+    register_clone_routes(app, image_style_cloner, image_generator, image_logger, csrf)
 
 logger.info("Application initialized successfully with modular architecture, pipeline agent, external memory, and document indexing")
 

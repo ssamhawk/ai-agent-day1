@@ -338,6 +338,19 @@ chatForm.addEventListener('submit', async (e) => {
                     keep_recent: 2
                 };
 
+                // Add reference style and subject if available (Day 18)
+                console.log('🔍 DEBUG: referenceStyleData:', referenceStyleData);
+                if (referenceStyleData && referenceStyleData.style_prompt) {
+                    requestBody.reference_style = referenceStyleData.style_prompt;
+                    requestBody.reference_subject = referenceStyleData.subject_description;
+                    console.log('📎 Using reference style and subject for generation');
+                    console.log('   Subject:', referenceStyleData.subject_description);
+                    console.log('   Style prompt:', referenceStyleData.style_prompt.substring(0, 100));
+                } else {
+                    console.log('⚠️ No reference style data available');
+                }
+                console.log('🔍 DEBUG: Final requestBody:', requestBody);
+
                 // Add conversation_id if available (from sidebar)
                 if (window.currentConversationId) {
                     requestBody.conversation_id = window.currentConversationId;
@@ -1205,14 +1218,18 @@ async function handleMCPStatusUpdate(data) {
                 displayMCPStatus(status);
             }
         } else {
-            serversList.innerHTML = '<p class="error">Failed to load MCP status</p>';
+            if (serversList) {
+                serversList.innerHTML = '<p class="error">Failed to load MCP status</p>';
+            }
             if (statusIndicators) {
                 statusIndicators.innerHTML = '<span class="status-error">Error</span>';
             }
         }
     } catch (error) {
         console.error('Error handling MCP status update:', error);
-        serversList.innerHTML = '<p class="error">Error processing MCP status</p>';
+        if (serversList) {
+            serversList.innerHTML = '<p class="error">Error processing MCP status</p>';
+        }
         if (statusIndicators) {
             statusIndicators.innerHTML = '<span class="status-error">Error</span>';
         }
@@ -1224,6 +1241,11 @@ async function handleMCPStatusUpdate(data) {
  */
 function displayMCPStatus(status) {
     const serversList = document.getElementById('servers-list');
+
+    // Early return if element doesn't exist
+    if (!serversList) {
+        return;
+    }
 
     if (!status.connected) {
         serversList.innerHTML = '<p class="no-servers">MCP servers not connected</p>';
@@ -1247,6 +1269,11 @@ function displayMCPStatus(status) {
  */
 function displayMCPServers(status, tools) {
     const serversList = document.getElementById('servers-list');
+
+    // Early return if element doesn't exist
+    if (!serversList) {
+        return;
+    }
 
     if (!status.connected || !status.servers || status.servers.length === 0) {
         serversList.innerHTML = '<p class="no-servers">No MCP servers connected</p>';
@@ -1456,5 +1483,150 @@ async function loadStyleProfiles() {
         }
     } catch (error) {
         console.error('Error loading style profiles:', error);
+    }
+}
+
+// ===== REFERENCE IMAGE UPLOAD (Day 18) =====
+
+// Reference upload elements
+const referenceControl = document.getElementById('reference-control');
+const referenceInput = document.getElementById('reference-input');
+const referenceButton = document.getElementById('reference-button');
+const clearReferenceButton = document.getElementById('clear-reference-button');
+const referencePreview = document.getElementById('reference-preview');
+const referencePreviewImg = document.getElementById('reference-preview-img');
+const referenceFilename = document.getElementById('reference-filename');
+
+// Store analyzed style data
+let referenceStyleData = null;
+
+// Show/hide reference control when image generation is enabled
+if (imageGenCheckbox && referenceControl) {
+    imageGenCheckbox.addEventListener('change', (e) => {
+        referenceControl.style.display = e.target.checked ? 'flex' : 'none';
+
+        // Clear reference when disabling image generation
+        if (!e.target.checked) {
+            clearReferenceImage();
+        }
+    });
+
+    // Initialize visibility
+    referenceControl.style.display = imageGenCheckbox.checked ? 'flex' : 'none';
+}
+
+// Reference button click - trigger file input
+if (referenceButton) {
+    referenceButton.addEventListener('click', () => {
+        referenceInput.click();
+    });
+}
+
+// Handle file selection
+if (referenceInput) {
+    referenceInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Invalid file type. Please upload PNG, JPG, JPEG, or WEBP image.');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            alert('File too large. Maximum size is 5MB.');
+            return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            referencePreviewImg.src = e.target.result;
+            referenceFilename.textContent = file.name;
+            referencePreview.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+
+        // Analyze style
+        await analyzeReferenceImage(file);
+
+        // Update button state
+        referenceButton.classList.add('has-reference');
+        clearReferenceButton.style.display = 'flex';
+    });
+}
+
+// Clear reference button
+if (clearReferenceButton) {
+    clearReferenceButton.addEventListener('click', () => {
+        clearReferenceImage();
+    });
+}
+
+// Clear reference image and data
+function clearReferenceImage() {
+    referenceInput.value = '';
+    referencePreview.style.display = 'none';
+    referencePreviewImg.src = '';
+    referenceFilename.textContent = '';
+    referenceStyleData = null;
+    referenceButton.classList.remove('has-reference');
+    referenceButton.innerHTML = '🖼️ Reference'; // Reset button text
+    clearReferenceButton.style.display = 'none';
+    console.log('Reference image cleared');
+}
+
+// Analyze reference image using Vision API
+async function analyzeReferenceImage(file) {
+    const sendButton = document.getElementById('send-button');
+
+    try {
+        console.log('🔍 Analyzing reference image...');
+
+        // Show loading state
+        referenceButton.innerHTML = '⏳ Analyzing...';
+        referenceButton.disabled = true;
+        if (sendButton) sendButton.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/clone/analyze', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            referenceStyleData = data;
+            console.log('✅ Style extracted successfully');
+            console.log('   Subject:', data.subject_description);
+            console.log('   Mood:', data.mood);
+            console.log('   Visual style:', data.visual_style);
+            console.log('   Style prompt:', data.style_prompt?.substring(0, 100) + '...');
+
+            // Update button text to show success
+            const moodText = data.mood || 'style';
+            referenceButton.innerHTML = `✅ ${moodText.split(',')[0].trim()}`;
+            referenceButton.disabled = false;
+            if (sendButton) sendButton.disabled = false;
+        } else {
+            console.error('❌ Failed to analyze image:', data.error);
+            alert('Failed to analyze image style: ' + data.error);
+            clearReferenceImage();
+            referenceButton.disabled = false;
+            if (sendButton) sendButton.disabled = false;
+        }
+    } catch (error) {
+        console.error('❌ Error analyzing reference image:', error);
+        alert('Error analyzing reference image. Please try again.');
+        clearReferenceImage();
+        referenceButton.disabled = false;
+        if (sendButton) sendButton.disabled = false;
     }
 }

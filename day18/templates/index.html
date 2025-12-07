@@ -156,11 +156,10 @@
                 <div id="image-gen-options" class="image-gen-options" style="display: none;">
                     <div class="field-group field-group--row">
                         <label class="field-label">Style Profile</label>
-                        <select id="style-profile-select" class="input input--select">
+                        <select id="style-profile-select" class="field-input format-select">
                             <option value="">None (manual prompt)</option>
                         </select>
                     </div>
-                    <p class="field-note">Select a style profile for brand-consistent image generation</p>
                 </div>
             </section>
 
@@ -228,6 +227,21 @@
                             <button type="button" id="voice-button" class="voice-button">
                                 🎤 Voice
                             </button>
+                        </div>
+                        <div class="reference-control" id="reference-control" style="display: none;">
+                            <input type="file" id="reference-input" accept="image/png,image/jpeg,image/jpg,image/webp" style="display: none;">
+                            <button type="button" id="reference-button" class="reference-button">
+                                🖼️ Reference
+                            </button>
+                            <button type="button" id="clear-reference-button" class="clear-reference-button" style="display: none;">
+                                ✕
+                            </button>
+                        </div>
+                        <div id="reference-preview" class="reference-preview" style="display: none;">
+                            <img id="reference-preview-img" src="" alt="Reference">
+                            <div class="reference-preview-info">
+                                <span id="reference-filename"></span>
+                            </div>
                         </div>
                         <textarea
                             id="user-input"

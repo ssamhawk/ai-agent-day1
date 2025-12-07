@@ -53,12 +53,6 @@
         <main class="rag-main">
             <!-- Query Section -->
             <section class="query-section">
-                <!-- Mode Selector -->
-                <div class="mode-selector">
-                    <button class="mode-btn active" data-mode="rag">📚 RAG Search</button>
-                    <button class="mode-btn" data-mode="image">🖼️ Generate Image</button>
-                </div>
-
                 <!-- RAG Mode -->
                 <div id="rag-mode" class="mode-content active">
                     <h2>Ask Your Documents</h2>
@@ -113,64 +107,6 @@
                         <button class="btn btn-primary" id="compare-reranking-btn">🔄 Compare Reranking</button>
                         <button class="btn btn-secondary" id="with-rag-btn">📚 With RAG</button>
                         <button class="btn btn-secondary" id="without-rag-btn">🤖 Without RAG</button>
-                    </div>
-                </div>
-
-                <!-- Image Generation Mode -->
-                <div id="image-mode" class="mode-content" style="display: none;">
-                    <h2>Generate Images</h2>
-
-                    <div class="query-input-wrapper">
-                        <textarea
-                            id="image-prompt"
-                            placeholder="Describe the image you want to generate...&#10;Example: a cute cat wearing sunglasses on a beach, sunset, highly detailed"
-                            rows="4"
-                        ></textarea>
-                    </div>
-
-                    <div class="query-controls">
-                        <button class="btn-collapse" id="image-options-toggle">
-                            ⚙️ Options <span class="arrow">▶</span>
-                        </button>
-                        <div class="options-content" id="image-options-content">
-                            <div class="option-group">
-                                <label>Model:</label>
-                                <select id="image-model" class="model-select">
-                                    <option value="flux-schnell">Flux Schnell (Fast, $0.003)</option>
-                                    <option value="flux-dev">Flux Dev (Balanced, $0.025)</option>
-                                    <option value="flux-pro">Flux Pro (Best, $0.055)</option>
-                                    <option value="sdxl">SDXL (Budget, $0.002)</option>
-                                </select>
-                            </div>
-                            <div class="option-group">
-                                <label>Size:</label>
-                                <select id="image-size" class="size-select">
-                                    <option value="landscape_4_3">Landscape 4:3 (1024×768)</option>
-                                    <option value="landscape_16_9">Landscape 16:9 (1024×576)</option>
-                                    <option value="square">Square (512×512)</option>
-                                    <option value="square_hd">Square HD (1024×1024)</option>
-                                    <option value="portrait_4_3">Portrait 4:3 (768×1024)</option>
-                                    <option value="portrait_16_9">Portrait 16:9 (576×1024)</option>
-                                </select>
-                            </div>
-                            <div class="option-group">
-                                <label>Steps (quality): <span id="steps-value">default</span></label>
-                                <input type="range" id="image-steps" min="0" max="50" value="0" step="5">
-                                <small>0 = model default</small>
-                            </div>
-                            <div class="option-group">
-                                <label>
-                                    <input type="checkbox" id="use-seed">
-                                    Use seed for reproducibility
-                                </label>
-                                <input type="number" id="image-seed" placeholder="Random seed (e.g., 42)" disabled>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="query-actions">
-                        <button class="btn btn-primary" id="generate-image-btn">🎨 Generate Image</button>
-                        <button class="btn btn-secondary" id="view-stats-btn">📊 View Stats</button>
                     </div>
                 </div>
             </section>

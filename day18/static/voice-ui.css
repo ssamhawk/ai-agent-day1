@@ -363,3 +363,148 @@ body.dark-mode .recording-indicator {
     flex: 1;
     margin-right: 0;
 }
+
+/* ====================
+   Reference Image Upload Styles (Day 18)
+   ==================== */
+
+/* Reference Control Container */
+.reference-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 12px;
+}
+
+/* Reference Button */
+.reference-button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+}
+
+.reference-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+}
+
+.reference-button:active {
+    transform: translateY(0);
+}
+
+.reference-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Reference Button with Image Loaded */
+.reference-button.has-reference {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Clear Reference Button */
+.clear-reference-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.9);
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.clear-reference-button:hover {
+    background: rgba(220, 38, 38, 1);
+    transform: scale(1.1);
+}
+
+/* Reference Preview */
+.reference-preview {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 0;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reference-preview img {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+}
+
+.reference-preview-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reference-preview-info span {
+    font-size: 13px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark Mode Adjustments */
+body.dark-mode .reference-button {
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+body.dark-mode .reference-button.has-reference {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+}
+
+body.dark-mode .reference-preview {
+    background: var(--bg-secondary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .reference-button {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+
+    .reference-preview {
+        max-width: 250px;
+    }
+
+    .clear-reference-button {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+}

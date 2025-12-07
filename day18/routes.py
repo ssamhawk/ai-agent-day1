@@ -86,7 +86,19 @@ def register_routes(app, limiter, client, memory_storage):
             fields = data.get('fields')
             intelligent_mode = data.get('intelligent_mode', False)
             image_gen_mode = data.get('image_gen_mode', False)
+            style_profile = data.get('style_profile')  # Day 18: Style profile for image generation
+            reference_style = data.get('reference_style')  # Day 18: Cloned style from reference image
+            reference_subject = data.get('reference_subject')  # Day 18: Subject from reference image
             max_tokens = data.get('max_tokens', OPENAI_MAX_TOKENS)
+
+            # DEBUG: Log all Day 18 parameters
+            logger.info(f"🔍 DEBUG: image_gen_mode={image_gen_mode}, style_profile={style_profile}")
+            logger.info(f"🔍 DEBUG: reference_style={'Present' if reference_style else 'None'}")
+            logger.info(f"🔍 DEBUG: reference_subject={'Present' if reference_subject else 'None'}")
+            if reference_style:
+                logger.info(f"   Reference style preview: {reference_style[:100]}...")
+            if reference_subject:
+                logger.info(f"   Reference subject: {reference_subject}")
 
             # Compression settings
             compression_enabled = data.get('compression_enabled', True)
@@ -138,7 +150,8 @@ def register_routes(app, limiter, client, memory_storage):
             # Get AI response
             result = get_ai_response(
                 user_message, response_format, fields, temperature, intelligent_mode, max_tokens,
-                compression_enabled, compression_threshold, keep_recent, image_gen_mode
+                compression_enabled, compression_threshold, keep_recent, image_gen_mode, style_profile,
+                reference_style, reference_subject
             )
 
             # Get current conversation ID from memory storage
