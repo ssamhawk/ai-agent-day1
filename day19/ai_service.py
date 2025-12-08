@@ -258,7 +258,9 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                 if reference_subject:
                     img_instructions += f"- Subject from reference: {reference_subject}\n"
                 if reference_style:
-                    style_preview = reference_style[:150] + "..." if len(reference_style) > 150 else reference_style
+                    # Extract style_prompt from object or use string directly
+                    style_text = reference_style.get('style_prompt', reference_style) if isinstance(reference_style, dict) else reference_style
+                    style_preview = style_text[:150] + "..." if len(style_text) > 150 else style_text
                     img_instructions += f"- Style from reference: {style_preview}\n"
                 img_instructions += "\n⚠️ IMPORTANT: When calling generate_image tool:\n"
                 img_instructions += "1. Use the EXACT words/text the user provides in their message as the prompt\n"
@@ -376,6 +378,9 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                     # Priority 1: Reference style from cloned image (Day 18)
                     if reference_style:
                         try:
+                            # Extract style_prompt from object or use string directly
+                            reference_style_text = reference_style.get('style_prompt', reference_style) if isinstance(reference_style, dict) else reference_style
+
                             # Build styled prompt with reference style FIRST (higher priority)
                             # Default subject: use base_prompt, override with reference if available
                             subject_to_use = base_prompt
@@ -416,20 +421,20 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                                 logger.info(f"⚠️  No reference subject - using base prompt only")
 
                             # Format: [STYLE] + [SUBJECT] to ensure style dominates
-                            final_prompt = f"{reference_style}. Subject: {subject_to_use}"
+                            final_prompt = f"{reference_style_text}. Subject: {subject_to_use}"
 
                             metadata = {
                                 "style_method": "reference_cloning",
                                 "base_prompt": base_prompt,
                                 "reference_subject": reference_subject if reference_subject else None,
-                                "reference_style": reference_style[:100] + "..." if len(reference_style) > 100 else reference_style
+                                "reference_style": reference_style_text[:100] + "..." if len(reference_style_text) > 100 else reference_style_text
                             }
 
                             logger.info(f"🖼️  Reference Style Cloning Applied (style-first approach)")
                             logger.info(f"   Base prompt: {base_prompt}")
                             if reference_subject:
                                 logger.info(f"   Reference subject: {reference_subject}")
-                            logger.info(f"   Reference style: {reference_style[:100]}...")
+                            logger.info(f"   Reference style: {reference_style_text[:100]}...")
                             logger.info(f"   Final prompt: {final_prompt[:200]}...")
                         except Exception as e:
                             logger.warning(f"⚠️  Failed to apply reference style: {str(e)}")

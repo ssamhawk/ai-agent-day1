@@ -343,7 +343,13 @@ chatForm.addEventListener('submit', async (e) => {
                 // Add reference style and subject if available (Day 18)
                 console.log('🔍 DEBUG: referenceStyleData:', referenceStyleData);
                 if (referenceStyleData && referenceStyleData.style_prompt) {
-                    requestBody.reference_style = referenceStyleData.style_prompt;
+                    // Day 19: Send full reference object for QA checklist
+                    requestBody.reference_style = {
+                        style_prompt: referenceStyleData.style_prompt,
+                        color_palette: referenceStyleData.color_palette || [],
+                        visual_style: referenceStyleData.visual_style || '',
+                        mood: referenceStyleData.mood || ''
+                    };
                     requestBody.reference_subject = referenceStyleData.subject_description;
                     requestBody.reference_image_path = referenceStyleData.reference_image_path; // Day 19: For QA visual comparison
                     console.log('📎 Using reference style and subject for generation');
