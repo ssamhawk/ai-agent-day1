@@ -171,6 +171,9 @@ Evaluate the GENERATED image on:
 5. **subject_match** (0-10): Does it contain what was requested in the prompt?
 6. **quality** (0-10): Is it sharp, clear, no artifacts?
 
+IMPORTANT: Calculate overall_score as the simple average of all 6 scores:
+overall_score = (color_palette + visual_style + mood + composition + subject_match + quality) / 6
+
 Return JSON:
 {{
     "overall_score": 0.0-10.0,
@@ -255,6 +258,9 @@ Evaluate on:
 4. **composition** (0-10): Good framing and layout?
 5. **subject_match** (0-10): Contains what was requested in prompt?
 6. **quality** (0-10): Sharp, clear, no artifacts or distortions?
+
+IMPORTANT: Calculate overall_score as the simple average of all 6 scores:
+overall_score = (color_palette + visual_style + mood + composition + subject_match + quality) / 6
 
 Return JSON:
 {{
