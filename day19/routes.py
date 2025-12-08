@@ -98,7 +98,9 @@ def register_routes(app, limiter, client, memory_storage, qa_agent=None):
             logger.info(f"🔍 DEBUG: reference_style={'Present' if reference_style else 'None'}")
             logger.info(f"🔍 DEBUG: reference_subject={'Present' if reference_subject else 'None'}")
             if reference_style:
-                logger.info(f"   Reference style preview: {reference_style[:100]}...")
+                # Extract style_prompt from object or use string directly
+                style_text = reference_style.get('style_prompt', str(reference_style)) if isinstance(reference_style, dict) else reference_style
+                logger.info(f"   Reference style preview: {style_text[:100]}...")
             if reference_subject:
                 logger.info(f"   Reference subject: {reference_subject}")
 
