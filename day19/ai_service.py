@@ -221,7 +221,8 @@ def process_mcp_commands(text, intelligent_mode=False):
 def get_ai_response(user_message, response_format="plain", fields=None, temperature=OPENAI_TEMPERATURE,
                    intelligent_mode=False, max_tokens=OPENAI_MAX_TOKENS, compression_enabled=True,
                    threshold=DEFAULT_COMPRESSION_THRESHOLD, keep_recent=DEFAULT_RECENT_KEEP, image_gen_mode=False,
-                   style_profile=None, reference_style=None, reference_subject=None, enable_qa=False, qa_agent=None):
+                   style_profile=None, reference_style=None, reference_subject=None, reference_image_path=None,
+                   enable_qa=False, qa_agent=None):
     """
     Get AI response with compression support and MCP integration
 
@@ -509,11 +510,23 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                                     "mood": profile.get("mood", "")
                                 }
 
+                            # Load reference image data if available for visual comparison
+                            reference_image_data = None
+                            if reference_image_path:
+                                ref_path = os.path.join("reference_images", reference_image_path)
+                                if os.path.exists(ref_path):
+                                    logger.info(f"📸 Loading reference image for QA: {ref_path}")
+                                    with open(ref_path, 'rb') as f:
+                                        reference_image_data = f.read()
+                                else:
+                                    logger.warning(f"⚠️  Reference image not found: {ref_path}")
+
                             # Run QA evaluation
                             qa_result = qa_agent.evaluate_image(
                                 image_data=image_data,
                                 original_prompt=base_prompt,
-                                checklist=qa_checklist if qa_checklist else None
+                                checklist=qa_checklist if qa_checklist else None,
+                                reference_image_data=reference_image_data
                             )
 
                             result["qa_check"] = qa_result

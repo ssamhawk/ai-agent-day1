@@ -345,9 +345,11 @@ chatForm.addEventListener('submit', async (e) => {
                 if (referenceStyleData && referenceStyleData.style_prompt) {
                     requestBody.reference_style = referenceStyleData.style_prompt;
                     requestBody.reference_subject = referenceStyleData.subject_description;
+                    requestBody.reference_image_path = referenceStyleData.reference_image_path; // Day 19: For QA visual comparison
                     console.log('📎 Using reference style and subject for generation');
                     console.log('   Subject:', referenceStyleData.subject_description);
                     console.log('   Style prompt:', referenceStyleData.style_prompt.substring(0, 100));
+                    console.log('   Reference image path:', referenceStyleData.reference_image_path);
                 } else {
                     console.log('⚠️ No reference style data available');
                 }

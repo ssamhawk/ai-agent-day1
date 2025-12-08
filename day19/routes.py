@@ -89,6 +89,7 @@ def register_routes(app, limiter, client, memory_storage, qa_agent=None):
             style_profile = data.get('style_profile')  # Day 18: Style profile for image generation
             reference_style = data.get('reference_style')  # Day 18: Cloned style from reference image
             reference_subject = data.get('reference_subject')  # Day 18: Subject from reference image
+            reference_image_path = data.get('reference_image_path')  # Day 19: Reference image path for QA visual comparison
             enable_qa = data.get('enable_qa', False)  # Day 19: Enable QA for generated images
             max_tokens = data.get('max_tokens', OPENAI_MAX_TOKENS)
 
@@ -152,7 +153,7 @@ def register_routes(app, limiter, client, memory_storage, qa_agent=None):
             result = get_ai_response(
                 user_message, response_format, fields, temperature, intelligent_mode, max_tokens,
                 compression_enabled, compression_threshold, keep_recent, image_gen_mode, style_profile,
-                reference_style, reference_subject, enable_qa, qa_agent
+                reference_style, reference_subject, reference_image_path, enable_qa, qa_agent
             )
 
             # Get current conversation ID from memory storage

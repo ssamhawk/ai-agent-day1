@@ -107,6 +107,9 @@ def register_clone_routes(app, image_style_cloner, image_generator, image_logger
 
             logger.info(f"✅ Reference image saved: {save_path}")
 
+            # Add reference image path to response for QA visual comparison
+            style_analysis['reference_image_path'] = saved_filename
+
             return jsonify(style_analysis)
 
         except Exception as e:
