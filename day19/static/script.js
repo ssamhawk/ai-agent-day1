@@ -293,6 +293,7 @@ chatForm.addEventListener('submit', async (e) => {
         const intelligentMode = intelligentModeCheckbox.checked;
         const imageGenMode = document.getElementById('image-gen-mode-checkbox').checked;
         const styleProfile = styleProfileSelect && styleProfileSelect.value ? styleProfileSelect.value : null;
+        const enableQA = document.getElementById('enable-qa-checkbox') ? document.getElementById('enable-qa-checkbox').checked : false;
         const compressionEnabled = compressionCheckbox.checked;
         const threshold = compressionThreshold.value ? parseInt(compressionThreshold.value) : 10;
         const maxTokens = maxTokensInput.value ? parseInt(maxTokensInput.value) : null;
@@ -333,6 +334,7 @@ chatForm.addEventListener('submit', async (e) => {
                     intelligent_mode: intelligentMode,
                     image_gen_mode: imageGenMode,
                     style_profile: styleProfile,
+                    enable_qa: enableQA,
                     compression_enabled: compressionEnabled,
                     compression_threshold: threshold,
                     keep_recent: 2

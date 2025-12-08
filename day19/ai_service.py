@@ -221,7 +221,7 @@ def process_mcp_commands(text, intelligent_mode=False):
 def get_ai_response(user_message, response_format="plain", fields=None, temperature=OPENAI_TEMPERATURE,
                    intelligent_mode=False, max_tokens=OPENAI_MAX_TOKENS, compression_enabled=True,
                    threshold=DEFAULT_COMPRESSION_THRESHOLD, keep_recent=DEFAULT_RECENT_KEEP, image_gen_mode=False,
-                   style_profile=None, reference_style=None, reference_subject=None):
+                   style_profile=None, reference_style=None, reference_subject=None, enable_qa=False, qa_agent=None):
     """
     Get AI response with compression support and MCP integration
 
@@ -237,6 +237,8 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
         keep_recent (int): Recent messages to keep
         image_gen_mode (bool): Enable image generation tool
         style_profile (str): Style profile name for image generation (Day 18)
+        enable_qa (bool): Enable QA evaluation for generated images (Day 19)
+        qa_agent: ImageQAAgent instance for quality evaluation (Day 19)
 
     Returns:
         dict: Response with compression stats and MCP usage info
@@ -477,6 +479,50 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
 
                     img_logger.log_generation(result)
 
+                    # QA Check (Day 19)
+                    qa_result = None
+                    if result["success"] and enable_qa and qa_agent:
+                        logger.info("🔍 Running QA check on generated image...")
+
+                        try:
+                            # Load image data
+                            with open(save_path, 'rb') as f:
+                                image_data = f.read()
+
+                            # Build QA checklist from style profile or reference
+                            qa_checklist = {}
+                            if reference_style and isinstance(reference_style, dict):
+                                # Use reference style analysis as checklist
+                                qa_checklist = {
+                                    "color_palette": reference_style.get("color_palette", []),
+                                    "visual_style": reference_style.get("visual_style", ""),
+                                    "mood": reference_style.get("mood", "")
+                                }
+                            elif style_profile:
+                                # Get style profile from StyleManager
+                                from style_manager import StyleManager
+                                style_mgr = StyleManager(profiles_path="style_profiles.json")
+                                profile = style_mgr.get_profile(style_profile)
+                                qa_checklist = {
+                                    "color_palette": profile.get("color_palette", []),
+                                    "visual_style": profile.get("visual_style", ""),
+                                    "mood": profile.get("mood", "")
+                                }
+
+                            # Run QA evaluation
+                            qa_result = qa_agent.evaluate_image(
+                                image_data=image_data,
+                                original_prompt=base_prompt,
+                                checklist=qa_checklist if qa_checklist else None
+                            )
+
+                            result["qa_check"] = qa_result
+                            logger.info(f"✅ QA completed: {qa_result.get('overall_score', 0)}/10 - {'PASSED' if qa_result.get('passed') else 'FAILED'}")
+
+                        except Exception as e:
+                            logger.error(f"❌ QA evaluation failed: {str(e)}")
+                            qa_result = None
+
                     if result["success"]:
                         # Add tool response to messages
                         messages.append({"role": "assistant", "content": None, "tool_calls": [tool_call]})
@@ -499,8 +545,49 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                         # Remove any markdown image syntax that AI might have added
                         ai_response = re.sub(r'!\[([^\]]*)\]\([^\)]+\)', '', ai_response)
 
+                        # Build QA HTML badge
+                        qa_html = ""
+                        if qa_result:
+                            score = qa_result.get('overall_score', 0)
+                            passed = qa_result.get('passed', False)
+                            status_class = 'qa-passed' if passed else 'qa-failed'
+                            status_emoji = '✅' if passed else '❌'
+
+                            # Build detailed checks HTML
+                            checks_html = ""
+                            if qa_result.get('checks'):
+                                checks_html = "<div class='qa-details' style='display:none;'>"
+                                for check_name, check_data in qa_result['checks'].items():
+                                    check_score = check_data.get('score', 0)
+                                    feedback = check_data.get('feedback', '')
+                                    checks_html += f"""
+                                    <div class='qa-check-item'>
+                                        <strong>{check_name.replace('_', ' ').title()}:</strong>
+                                        <span class='qa-check-score'>{check_score}/10</span>
+                                        <div class='qa-check-feedback'>{feedback}</div>
+                                    </div>
+                                    """
+
+                                if qa_result.get('suggestions'):
+                                    checks_html += f"""
+                                    <div class='qa-suggestions'>
+                                        <strong>💡 Suggestions:</strong> {qa_result['suggestions']}
+                                    </div>
+                                    """
+                                checks_html += "</div>"
+
+                            qa_html = f"""
+                            <div class="qa-badge {status_class}">
+                                <button class="qa-toggle" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                                    🔍 QA: {score:.1f}/10 {status_emoji} {status_class.upper().replace('QA-', '')}
+                                    <span class="qa-arrow">▼</span>
+                                </button>
+                                {checks_html}
+                            </div>
+                            """
+
                         # Add image as simple HTML img tag at the very end
-                        image_html = f'<div style="margin:20px 0;"><img src="{result["image_url"]}" style="max-width:500px;border-radius:8px;"></div>'
+                        image_html = f'<div style="margin:20px 0;"><img src="{result["image_url"]}" style="max-width:500px;border-radius:8px;">{qa_html}</div>'
                         ai_response = ai_response + '\n\n' + image_html
                     else:
                         ai_response = f"Failed to generate image: {result.get('error')}"

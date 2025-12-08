@@ -508,3 +508,143 @@ body.dark-mode .reference-preview {
         font-size: 14px;
     }
 }
+
+/* ===================================
+   QA Badge Styles (Day 19)
+   =================================== */
+
+.qa-badge {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.qa-badge.qa-passed {
+    background: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.qa-badge.qa-failed {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.qa-toggle {
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #2c3e50;
+    transition: opacity 0.2s;
+}
+
+.qa-toggle:hover {
+    opacity: 0.8;
+}
+
+.qa-arrow {
+    font-size: 10px;
+    margin-left: 8px;
+    transition: transform 0.3s;
+}
+
+.qa-details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #dee2e6;
+}
+
+.qa-check-item {
+    margin-bottom: 12px;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.qa-check-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #2c3e50;
+}
+
+.qa-check-score {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #007bff;
+    color: white;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.qa-check-feedback {
+    margin-top: 6px;
+    color: #6c757d;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.qa-suggestions {
+    margin-top: 12px;
+    padding: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #856404;
+}
+
+.qa-suggestions strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .qa-badge {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+[data-theme="dark"] .qa-badge.qa-passed {
+    background: #2f4538;
+    border-color: #48bb78;
+}
+
+[data-theme="dark"] .qa-badge.qa-failed {
+    background: #4a2c2f;
+    border-color: #f56565;
+}
+
+[data-theme="dark"] .qa-toggle {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .qa-check-item {
+    background: #1a202c;
+}
+
+[data-theme="dark"] .qa-check-item strong {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .qa-check-feedback {
+    color: #a0aec0;
+}
+
+[data-theme="dark"] .qa-suggestions {
+    background: #4a3c28;
+    border-color: #d69e2e;
+    color: #faf089;
+}

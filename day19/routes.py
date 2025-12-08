@@ -24,7 +24,7 @@ from speech_service import transcribe_audio, validate_audio_file
 logger = logging.getLogger(__name__)
 
 
-def register_routes(app, limiter, client, memory_storage):
+def register_routes(app, limiter, client, memory_storage, qa_agent=None):
     """
     Register all Flask routes with the app
 
@@ -89,6 +89,7 @@ def register_routes(app, limiter, client, memory_storage):
             style_profile = data.get('style_profile')  # Day 18: Style profile for image generation
             reference_style = data.get('reference_style')  # Day 18: Cloned style from reference image
             reference_subject = data.get('reference_subject')  # Day 18: Subject from reference image
+            enable_qa = data.get('enable_qa', False)  # Day 19: Enable QA for generated images
             max_tokens = data.get('max_tokens', OPENAI_MAX_TOKENS)
 
             # DEBUG: Log all Day 18 parameters
@@ -151,7 +152,7 @@ def register_routes(app, limiter, client, memory_storage):
             result = get_ai_response(
                 user_message, response_format, fields, temperature, intelligent_mode, max_tokens,
                 compression_enabled, compression_threshold, keep_recent, image_gen_mode, style_profile,
-                reference_style, reference_subject
+                reference_style, reference_subject, enable_qa, qa_agent
             )
 
             # Get current conversation ID from memory storage

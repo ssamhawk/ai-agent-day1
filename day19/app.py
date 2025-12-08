@@ -193,7 +193,7 @@ def add_security_headers(response):
     return response
 
 # Register routes and WebSocket handlers
-register_routes(app, limiter, client, memory_storage)
+register_routes(app, limiter, client, memory_storage, image_qa_agent if 'image_qa_agent' in locals() else None)
 register_socketio_handlers(socketio)
 register_indexing_routes(app, socketio, document_indexer, vector_store, csrf)
 register_rag_routes(app, rag_agent, csrf)
