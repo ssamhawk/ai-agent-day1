@@ -171,8 +171,15 @@ Evaluate the GENERATED image on:
 5. **subject_match** (0-10): Does it contain what was requested in the prompt?
 6. **quality** (0-10): Is it sharp, clear, no artifacts?
 
-IMPORTANT: Calculate overall_score as the simple average of all 6 scores:
-overall_score = (color_palette + visual_style + mood + composition + subject_match + quality) / 6
+IMPORTANT: Calculate overall_score as weighted average with these weights:
+- subject_match: 25% (important but not critical)
+- quality: 20% (high quality is valuable)
+- visual_style: 20% (style match is important)
+- composition: 15% (good framing matters)
+- color_palette: 12% (colors important for styled images)
+- mood: 8% (least critical)
+
+Formula: overall_score = subject_match*0.25 + quality*0.20 + visual_style*0.20 + composition*0.15 + color_palette*0.12 + mood*0.08
 
 Return JSON:
 {{
@@ -259,8 +266,15 @@ Evaluate on:
 5. **subject_match** (0-10): Contains what was requested in prompt?
 6. **quality** (0-10): Sharp, clear, no artifacts or distortions?
 
-IMPORTANT: Calculate overall_score as the simple average of all 6 scores:
-overall_score = (color_palette + visual_style + mood + composition + subject_match + quality) / 6
+IMPORTANT: Calculate overall_score as weighted average with these weights:
+- subject_match: 25% (important but not critical)
+- quality: 20% (high quality is valuable)
+- visual_style: 20% (style match is important)
+- composition: 15% (good framing matters)
+- color_palette: 12% (colors important for styled images)
+- mood: 8% (least critical)
+
+Formula: overall_score = subject_match*0.25 + quality*0.20 + visual_style*0.20 + composition*0.15 + color_palette*0.12 + mood*0.08
 
 Return JSON:
 {{
