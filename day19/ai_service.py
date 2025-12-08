@@ -574,6 +574,26 @@ def get_ai_response(user_message, response_format="plain", fields=None, temperat
                                         <strong>💡 Suggestions:</strong> {qa_result['suggestions']}
                                     </div>
                                     """
+
+                                # Add Regenerate button if QA failed
+                                if not passed:
+                                    # Escape quotes for data attributes
+                                    escaped_prompt = base_prompt.replace('"', '&quot;').replace("'", "&#39;")
+                                    escaped_suggestions = qa_result.get('suggestions', '').replace('"', '&quot;').replace("'", "&#39;")
+                                    style_attr = f"data-style-profile='{style_profile}'" if style_profile else ""
+
+                                    checks_html += f"""
+                                    <div class='qa-regenerate-section'>
+                                        <button class='qa-regenerate-btn'
+                                                onclick='regenerateWithQA(this)'
+                                                data-prompt='{escaped_prompt}'
+                                                data-suggestions='{escaped_suggestions}'
+                                                {style_attr}>
+                                            🔄 Regenerate with Improvements
+                                        </button>
+                                    </div>
+                                    """
+
                                 checks_html += "</div>"
 
                             qa_html = f"""

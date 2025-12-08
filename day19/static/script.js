@@ -1643,3 +1643,71 @@ async function analyzeReferenceImage(file) {
         if (sendButton) sendButton.disabled = false;
     }
 }
+// ===================================
+// QA Regenerate Handler (Day 19)
+// ===================================
+
+window.regenerateWithQA = function(button) {
+    const originalPrompt = button.getAttribute('data-prompt');
+    const suggestions = button.getAttribute('data-suggestions');
+    const styleProfile = button.getAttribute('data-style-profile');
+
+    if (!originalPrompt) {
+        console.error('No prompt found for regeneration');
+        return;
+    }
+
+    // Build improved prompt with suggestions
+    let improvedPrompt = originalPrompt;
+    if (suggestions && suggestions.trim()) {
+        improvedPrompt = `${originalPrompt}. ${suggestions}`;
+    }
+
+    console.log('🔄 Regenerating with improved prompt:');
+    console.log('  Original:', originalPrompt);
+    console.log('  Improved:', improvedPrompt);
+    console.log('  Style:', styleProfile || 'none');
+
+    // Disable button during regeneration
+    button.disabled = true;
+    button.textContent = '🔄 Regenerating...';
+
+    // Set the input field to the improved prompt
+    const userInput = document.getElementById('user-input');
+    if (userInput) {
+        userInput.value = improvedPrompt;
+    }
+
+    // Make sure image generation and QA are enabled
+    const imageGenCheckbox = document.getElementById('image-gen-mode-checkbox');
+    const qaCheckbox = document.getElementById('enable-qa-checkbox');
+    const styleProfileSelect = document.getElementById('style-profile-select');
+
+    if (imageGenCheckbox) imageGenCheckbox.checked = true;
+    if (qaCheckbox) qaCheckbox.checked = true;
+    if (styleProfileSelect && styleProfile) {
+        styleProfileSelect.value = styleProfile;
+    }
+
+    // Trigger form submission
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+        // Create and dispatch submit event
+        const submitEvent = new Event('submit', {
+            bubbles: true,
+            cancelable: true
+        });
+        chatForm.dispatchEvent(submitEvent);
+    } else {
+        console.error('Chat form not found');
+        button.disabled = false;
+        button.textContent = '🔄 Regenerate with Improvements';
+    }
+
+    // Re-enable button after a delay
+    setTimeout(() => {
+        button.disabled = false;
+        button.textContent = '🔄 Regenerate with Improvements';
+    }, 2000);
+};
+
