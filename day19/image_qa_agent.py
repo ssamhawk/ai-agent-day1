@@ -5,8 +5,11 @@ Automated quality assurance for generated images using Vision API
 import logging
 import base64
 import json
+import io
+import numpy as np
 from typing import Dict, Any, Optional, List
 from openai import OpenAI
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,39 @@ class ImageQAAgent:
         self.client = openai_client
         self.default_threshold = default_threshold
         logger.info(f"✅ ImageQAAgent initialized (threshold: {default_threshold})")
+
+    def _is_blank_image(self, image_data: bytes, threshold: float = 10.0) -> bool:
+        """
+        Check if image is blank/solid color (generation failed)
+
+        Args:
+            image_data: Image binary data
+            threshold: Standard deviation threshold (lower = more uniform)
+
+        Returns:
+            True if image is blank/uniform, False otherwise
+        """
+        try:
+            img = Image.open(io.BytesIO(image_data))
+
+            # Convert to RGB if needed
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            # Convert to numpy array
+            img_array = np.array(img)
+
+            # Calculate standard deviation across all pixels
+            std_dev = np.std(img_array)
+
+            logger.info(f"   Image variance check: std_dev={std_dev:.2f} (threshold={threshold})")
+
+            # If standard deviation is very low, image is uniform/blank
+            return std_dev < threshold
+
+        except Exception as e:
+            logger.warning(f"⚠️  Failed to check if image is blank: {str(e)}")
+            return False  # Don't fail QA just because check failed
 
     def evaluate_image(
         self,
@@ -79,6 +115,27 @@ class ImageQAAgent:
             logger.info(f"🔍 Starting QA evaluation (mode: {comparison_mode})")
             logger.info(f"   Prompt: {original_prompt}")
             logger.info(f"   Threshold: {threshold}/10")
+
+            # Check if image is blank/solid color (generation failed)
+            if self._is_blank_image(image_data):
+                logger.error("❌ Image is blank/solid color - generation likely failed")
+                return {
+                    "success": False,
+                    "overall_score": 0.0,
+                    "passed": False,
+                    "checks": {
+                        "color_palette": {"score": 0, "feedback": "Image is blank/solid color"},
+                        "visual_style": {"score": 0, "feedback": "No visual content detected"},
+                        "mood": {"score": 0, "feedback": "No content to evaluate"},
+                        "composition": {"score": 0, "feedback": "No composition present"},
+                        "subject_match": {"score": 0, "feedback": "No subject detected"},
+                        "quality": {"score": 0, "feedback": "Generation failed - blank image"}
+                    },
+                    "suggestions": "Image generation failed. Try regenerating with different parameters or seed.",
+                    "comparison_mode": comparison_mode,
+                    "threshold": threshold,
+                    "error": "Blank/solid color image detected - generation failed"
+                }
 
             # Build Vision API prompt
             if reference_image_data:
