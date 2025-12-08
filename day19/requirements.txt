@@ -1,0 +1,12 @@
+flask
+flask-socketio
+flask-limiter
+flask-wtf
+openai
+python-dotenv
+tiktoken
+faiss-cpu
+numpy
+sentence-transformers
+fal-client>=0.4.1
+pillow>=10.0.0
