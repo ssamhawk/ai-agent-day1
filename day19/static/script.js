@@ -720,16 +720,27 @@ function displayTemperatureComparison(temperatures, results, format) {
             // Check if response contains <div><img> HTML (from image generation)
             if (result.response && result.response.includes('<div') && result.response.includes('<img')) {
                 console.log('IMAGE GENERATION DETECTED!');
-                // Extract the HTML part and text part
-                const imgMatch = result.response.match(/(<div[^>]*>.*?<\/div>)/s);
-                console.log('Image match:', imgMatch);
-                if (imgMatch) {
-                    const imageHtml = imgMatch[1];
-                    const textPart = result.response.replace(imageHtml, '').trim();
-                    console.log('Setting HTML with image');
+                // Find where image HTML starts (look for the div with image)
+                const imageStartMarker = '<div style="margin:20px 0;">';
+                const imageStartIndex = result.response.indexOf(imageStartMarker);
+
+                if (imageStartIndex !== -1) {
+                    const textPart = result.response.substring(0, imageStartIndex).trim();
+                    const imageHtml = result.response.substring(imageStartIndex);
+                    console.log('Setting HTML with image and QA badge');
                     content.innerHTML = renderResponse(textPart, format, result.parsed) + imageHtml;
                 } else {
-                    content.innerHTML = renderResponse(result.response, format, result.parsed);
+                    // Fallback to old regex method
+                    const imgMatch = result.response.match(/(<div[^>]*>.*?<\/div>)/s);
+                    console.log('Image match:', imgMatch);
+                    if (imgMatch) {
+                        const imageHtml = imgMatch[1];
+                        const textPart = result.response.replace(imageHtml, '').trim();
+                        console.log('Setting HTML with image (fallback)');
+                        content.innerHTML = renderResponse(textPart, format, result.parsed) + imageHtml;
+                    } else {
+                        content.innerHTML = renderResponse(result.response, format, result.parsed);
+                    }
                 }
             } else {
                 content.innerHTML = renderResponse(result.response, format, result.parsed);
